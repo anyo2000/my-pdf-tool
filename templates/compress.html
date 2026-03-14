@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}PDF 압축 - PDF Tool{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>PDF 압축</h2>
+    <p>PDF 파일 크기를 줄입니다.</p>
+</div>
+
+<div class="upload-zone" id="uploadZone">
+    <div class="upload-zone-icon">📦</div>
+    <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+    <div class="upload-zone-hint">최대 100MB</div>
+    <input type="file" id="fileInput" accept=".pdf">
+</div>
+
+<div id="optionsArea" style="display:none;">
+    <div class="file-list" id="fileList"></div>
+    <div class="options-group">
+        <label>압축 수준</label>
+        <div class="radio-group">
+            <div class="radio-option">
+                <input type="radio" name="level" id="levelLow" value="low">
+                <label for="levelLow">낮은 압축<br><small style="font-weight:400;color:var(--color-text-secondary)">고품질 유지</small></label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" name="level" id="levelMedium" value="medium" checked>
+                <label for="levelMedium">중간 압축<br><small style="font-weight:400;color:var(--color-text-secondary)">권장</small></label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" name="level" id="levelHigh" value="high">
+                <label for="levelHigh">높은 압축<br><small style="font-weight:400;color:var(--color-text-secondary)">최대 압축</small></label>
+            </div>
+        </div>
+    </div>
+    <div class="action-bar">
+        <button class="btn btn-primary" id="compressBtn">압축하기</button>
+    </div>
+</div>
+
+<div class="progress-wrap">
+    <div class="progress-bar-outer"><div class="progress-bar-inner"></div></div>
+    <div class="progress-text"></div>
+</div>
+
+<div class="error-msg"></div>
+
+<div class="result-area">
+    <div class="result-card">
+        <div class="stats" id="stats"></div>
+        <div class="result-info">압축이 완료되었습니다.</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    let file = null;
+    let originalSize = 0;
+
+    setupUploadZone('uploadZone', 'fileInput', {
+        onFiles: function(files) {
+            if (!validateFileSize(files[0])) return;
+            hideError();
+            file = files[0];
+            originalSize = file.size;
+            document.getElementById('fileList').innerHTML =
+                `<div class="file-item"><span class="file-item-name">${file.name}</span><span class="file-item-size">${formatFileSize(file.size)}</span></div>`;
+            document.getElementById('optionsArea').style.display = 'block';
+        }
+    });
+
+    document.getElementById('compressBtn').addEventListener('click', async function() {
+        if (!file) return;
+        hideError();
+        hideResult();
+        this.disabled = true;
+
+        const level = document.querySelector('input[name="level"]:checked').value;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('level', level);
+
+        try {
+            const xhr = new XMLHttpRequest();
+            const progressWrap = document.querySelector('.progress-wrap');
+            const progressBar = document.querySelector('.progress-bar-inner');
+            const progressText = document.querySelector('.progress-text');
+
+            progressWrap.classList.add('active');
+
+            const result = await new Promise((resolve, reject) => {
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const pct = Math.round((e.loaded / e.total) * 100);
+                        progressBar.style.width = pct + '%';
+                        progressText.textContent = `업로드 중... ${pct}%`;
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    progressText.textContent = '처리 중...';
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve({
+                            blob: xhr.response,
+                            originalSize: parseInt(xhr.getResponseHeader('X-Original-Size') || '0'),
+                            compressedSize: parseInt(xhr.getResponseHeader('X-Compressed-Size') || '0'),
+                            ratio: parseFloat(xhr.getResponseHeader('X-Compression-Ratio') || '0'),
+                            filename: 'compressed.pdf'
+                        });
+                    } else {
+                        let msg = '압축 중 오류가 발생했습니다.';
+                        try {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                try { msg = JSON.parse(reader.result).error || msg; } catch {}
+                                reject(new Error(msg));
+                            };
+                            reader.readAsText(xhr.response);
+                            return;
+                        } catch {}
+                        reject(new Error(msg));
+                    }
+                });
+
+                xhr.addEventListener('error', () => reject(new Error('네트워크 오류')));
+                xhr.open('POST', '/api/compress');
+                xhr.responseType = 'blob';
+                xhr.send(formData);
+            });
+
+            // Show stats
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${formatFileSize(result.originalSize)}</div>
+                    <div class="stat-label">원본 크기</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${formatFileSize(result.compressedSize)}</div>
+                    <div class="stat-label">압축 후 크기</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value success">${result.ratio}%</div>
+                    <div class="stat-label">크기 감소</div>
+                </div>
+            `;
+
+            downloadBlob(result.blob, result.filename);
+            showResult();
+        } catch (e) {
+            showError(e.message);
+        } finally {
+            resetProgress();
+            this.disabled = false;
+        }
+    });
+})();
+</script>
+{% endblock %}

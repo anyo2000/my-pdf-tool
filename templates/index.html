@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}PDF Tool - 홈{% endblock %}
+{% block content %}
+<div class="hero">
+    <h1>H.W. PDF TOOL</h1>
+    <p class="hero-desc">인터넷 없이도 작동합니다</p>
+</div>
+<div class="card-grid">
+    <a href="/pdf-to-image" class="card">
+        <div class="card-icon">🖼️</div>
+        <h3>PDF → 이미지</h3>
+        <p>PDF 페이지를 이미지로 변환합니다</p>
+    </a>
+    <a href="/pdf-to-ppt" class="card">
+        <div class="card-icon">📊</div>
+        <h3>PDF → PPT</h3>
+        <p>PDF를 파워포인트로 변환합니다</p>
+    </a>
+    <a href="/compress" class="card">
+        <div class="card-icon">📦</div>
+        <h3>PDF 압축</h3>
+        <p>PDF 파일 크기를 줄입니다</p>
+    </a>
+    <a href="/ocr" class="card">
+        <div class="card-icon">🔍</div>
+        <h3>OCR</h3>
+        <p>PDF에서 텍스트를 추출합니다</p>
+    </a>
+    <a href="/merge" class="card">
+        <div class="card-icon">📎</div>
+        <h3>PDF 병합</h3>
+        <p>여러 PDF 파일을 하나로 합칩니다</p>
+    </a>
+    <a href="/split" class="card">
+        <div class="card-icon">✂️</div>
+        <h3>PDF 분할</h3>
+        <p>PDF에서 원하는 페이지만 추출합니다</p>
+    </a>
+    <a href="/rotate" class="card">
+        <div class="card-icon">🔄</div>
+        <h3>페이지 회전</h3>
+        <p>PDF 페이지를 원하는 각도로 회전합니다</p>
+    </a>
+</div>
+{% endblock %}

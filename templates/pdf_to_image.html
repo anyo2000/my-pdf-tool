@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}PDF → 이미지 - PDF Tool{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>PDF → 이미지</h2>
+    <p>PDF 페이지를 이미지 파일로 변환합니다.</p>
+</div>
+
+<div class="upload-zone" id="uploadZone">
+    <div class="upload-zone-icon">🖼️</div>
+    <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+    <div class="upload-zone-hint">최대 100MB</div>
+    <input type="file" id="fileInput" accept=".pdf">
+</div>
+
+<div id="optionsArea" style="display:none;">
+    <div class="file-list" id="fileList"></div>
+    <div class="options-group">
+        <div class="options-row">
+            <div>
+                <label for="format">이미지 포맷</label>
+                <select id="format">
+                    <option value="png">PNG</option>
+                    <option value="jpg">JPG</option>
+                </select>
+            </div>
+            <div>
+                <label for="dpi">해상도 (DPI)</label>
+                <select id="dpi">
+                    <option value="150">150 DPI (빠름)</option>
+                    <option value="200" selected>200 DPI (권장)</option>
+                    <option value="300">300 DPI (고품질)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="action-bar">
+        <button class="btn btn-primary" id="convertBtn">변환하기</button>
+    </div>
+</div>
+
+<div class="progress-wrap">
+    <div class="progress-bar-outer"><div class="progress-bar-inner"></div></div>
+    <div class="progress-text"></div>
+</div>
+
+<div class="error-msg"></div>
+
+<div class="result-area">
+    <div class="result-card">
+        <div class="result-info">변환이 완료되었습니다. ZIP 파일로 다운로드됩니다.</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    let file = null;
+
+    setupUploadZone('uploadZone', 'fileInput', {
+        onFiles: function(files) {
+            if (!validateFileSize(files[0])) return;
+            hideError();
+            file = files[0];
+            document.getElementById('fileList').innerHTML =
+                `<div class="file-item"><span class="file-item-name">${file.name}</span><span class="file-item-size">${formatFileSize(file.size)}</span></div>`;
+            document.getElementById('optionsArea').style.display = 'block';
+        }
+    });
+
+    document.getElementById('convertBtn').addEventListener('click', async function() {
+        if (!file) return;
+        hideError();
+        hideResult();
+        this.disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('format', document.getElementById('format').value);
+        formData.append('dpi', document.getElementById('dpi').value);
+
+        try {
+            const result = await uploadFiles('/api/pdf-to-image', formData, { responseType: 'blob' });
+            downloadBlob(result.blob, result.filename || 'images.zip');
+            showResult();
+        } catch (e) {
+            showError(e.message);
+        } finally {
+            resetProgress();
+            this.disabled = false;
+        }
+    });
+})();
+</script>
+{% endblock %}

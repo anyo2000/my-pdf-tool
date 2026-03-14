@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}PDF 병합 - PDF Tool{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>PDF 병합</h2>
+    <p>여러 PDF 파일을 하나로 합칩니다. 드래그로 순서를 변경할 수 있습니다.</p>
+</div>
+
+<div class="upload-zone" id="uploadZone">
+    <div class="upload-zone-icon">📎</div>
+    <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+    <div class="upload-zone-hint">여러 파일을 선택할 수 있습니다 (최대 100MB/파일)</div>
+    <input type="file" id="fileInput" accept=".pdf" multiple>
+</div>
+
+<div class="file-list" id="fileList"></div>
+
+<div class="action-bar">
+    <button class="btn btn-primary" id="mergeBtn" disabled>병합하기</button>
+</div>
+
+<div class="progress-wrap">
+    <div class="progress-bar-outer"><div class="progress-bar-inner"></div></div>
+    <div class="progress-text"></div>
+</div>
+
+<div class="error-msg"></div>
+
+<div class="result-area">
+    <div class="result-card">
+        <div class="result-info">병합이 완료되었습니다.</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    let files = [];
+
+    function updateUI() {
+        createFileList('fileList', files);
+        document.getElementById('mergeBtn').disabled = files.length < 2;
+    }
+
+    window._onFileListChange = function(newFiles) {
+        files = newFiles;
+        updateUI();
+    };
+
+    setupUploadZone('uploadZone', 'fileInput', {
+        multiple: true,
+        onFiles: function(newFiles) {
+            for (const f of newFiles) {
+                if (!validateFileSize(f)) return;
+            }
+            hideError();
+            files = files.concat(newFiles);
+            updateUI();
+        }
+    });
+
+    document.getElementById('mergeBtn').addEventListener('click', async function() {
+        if (files.length < 2) return;
+        hideError();
+        hideResult();
+        this.disabled = true;
+
+        const formData = new FormData();
+        files.forEach(f => formData.append('files', f));
+
+        try {
+            const result = await uploadFiles('/api/merge', formData, { responseType: 'blob' });
+            downloadBlob(result.blob, result.filename || 'merged.pdf');
+            showResult();
+        } catch (e) {
+            showError(e.message);
+        } finally {
+            resetProgress();
+            this.disabled = false;
+        }
+    });
+})();
+</script>
+{% endblock %}
