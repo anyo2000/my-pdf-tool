@@ -322,6 +322,98 @@ body::after {
 .thumb-btn:hover { background: rgba(0,0,0,0.06); color: var(--color-text); }
 .thumb-btn.del:hover { color: var(--color-error); background: var(--color-error-bg); }
 
+/* ===== 페이지 편집기 (가리기·넣기 공용) ===== */
+.editor-area { display: none; }
+.editor-area.active { display: block; }
+.editor-toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-top: 20px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+.editor-hint { font-size: 13px; color: var(--color-text-secondary); margin-top: 10px; }
+.page-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin-left: auto; }
+.page-nav button {
+    background: none; border: 1px solid rgba(0,0,0,0.12); border-radius: 8px;
+    width: 30px; height: 30px; cursor: pointer; font-size: 14px;
+    transition: all 0.15s;
+}
+.page-nav button:hover { background: rgba(0,0,0,0.05); }
+.page-nav button:disabled { opacity: 0.3; cursor: default; }
+.chip-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chip-group input[type="radio"] { display: none; }
+.chip-group label {
+    padding: 6px 12px; font-size: 13px; font-weight: 500;
+    border: 1px solid rgba(0,0,0,0.1); border-radius: 20px;
+    cursor: pointer; background: var(--glass-bg);
+    transition: all 0.15s;
+}
+.chip-group input[type="radio"]:checked + label {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: rgba(249, 115, 22, 0.06);
+}
+.color-swatch {
+    width: 34px; height: 30px; padding: 2px;
+    border: 1px solid rgba(0,0,0,0.12); border-radius: 8px;
+    background: #fff; cursor: pointer;
+}
+.viewer-wrap { margin-top: 16px; text-align: center; }
+.viewer-stage {
+    position: relative; display: inline-block;
+    box-shadow: var(--shadow-md);
+    border-radius: 4px;
+    max-width: 100%;
+}
+.viewer-stage canvas { display: block; max-width: 100%; height: auto; border-radius: 4px; }
+.viewer-overlay { position: absolute; inset: 0; }
+.viewer-overlay.crosshair { cursor: crosshair; }
+.redact-box { position: absolute; box-sizing: border-box; border: 1px dashed rgba(0,0,0,0.35); }
+.box-del {
+    position: absolute; top: -9px; right: -9px;
+    width: 18px; height: 18px; line-height: 16px;
+    background: #fff; color: var(--color-error);
+    border: 1px solid rgba(0,0,0,0.15); border-radius: 50%;
+    font-size: 11px; cursor: pointer; padding: 0;
+}
+.stamp-el { position: absolute; cursor: move; user-select: none; -webkit-user-select: none; }
+.stamp-el img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.stamp-el .stamp-text { pointer-events: none; white-space: pre; line-height: 1.25; font-weight: 600; }
+.stamp-el.selected { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+.stamp-handle {
+    position: absolute; right: -8px; bottom: -8px;
+    width: 16px; height: 16px;
+    background: var(--color-primary); border: 2px solid #fff;
+    border-radius: 50%; cursor: nwse-resize;
+    display: none;
+}
+.stamp-el.selected .stamp-handle { display: block; }
+.stamp-el .box-del { display: none; }
+.stamp-el.selected .box-del { display: block; }
+.fav-strip {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    margin-top: 12px; font-size: 13px;
+}
+.fav-label { color: var(--color-text-secondary); font-weight: 600; }
+.fav-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 20px; padding: 4px 10px;
+    cursor: pointer; font-size: 13px;
+    transition: all 0.15s;
+}
+.fav-chip:hover { border-color: var(--color-primary); }
+.fav-chip img { height: 22px; max-width: 60px; object-fit: contain; }
+.fav-chip-del {
+    background: none; border: none; cursor: pointer;
+    color: var(--color-text-secondary); font-size: 13px; padding: 0 2px;
+}
+.fav-chip-del:hover { color: var(--color-error); }
+
 @media (max-width: 600px) {
     .container { padding: 20px 16px; }
     .card-grid { grid-template-columns: 1fr 1fr; }
@@ -384,14 +476,12 @@ body::after {
             <h3>PDF → PPT</h3>
             <p>페이지를 슬라이드로</p>
         </a>
-        <a class="card soon">
-            <span class="badge-soon">준비중</span>
+        <a class="card" onclick="navigateTo('redact')">
             <div class="card-icon">🩹</div>
             <h3>박스로 가리기</h3>
             <p>보이면 안 되는 부분을 덮어서 저장</p>
         </a>
-        <a class="card soon">
-            <span class="badge-soon">준비중</span>
+        <a class="card" onclick="navigateTo('stamp')">
             <div class="card-icon">✍️</div>
             <h3>글자·이미지 넣기</h3>
             <p>도장, 사인, 연락처를 원하는 자리에</p>
@@ -564,6 +654,104 @@ body::after {
     </div>
 </section>
 
+<!-- ===== REDACT (박스로 가리기) ===== -->
+<section class="page-section" id="page-redact">
+    <div class="page-header">
+        <h2>박스로 가리기</h2>
+        <p>마우스로 드래그한 영역을 색 박스로 덮습니다. 저장하면 가린 페이지는 이미지로 바뀌어 <strong>원래 내용을 복구할 수 없습니다.</strong></p>
+    </div>
+    <div class="upload-zone" id="redUploadZone">
+        <div class="upload-zone-icon">🩹</div>
+        <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-zone-hint"></div>
+        <input type="file" id="redFileInput" accept=".pdf">
+    </div>
+    <div class="editor-area" id="redEditor">
+        <div class="editor-toolbar">
+            <div class="chip-group">
+                <input type="radio" name="redMode" id="redModeGray" value="gray" checked>
+                <label for="redModeGray">밝은 회색</label>
+                <input type="radio" name="redMode" id="redModeCustom" value="custom">
+                <label for="redModeCustom">직접 선택</label>
+                <input type="radio" name="redMode" id="redModePick" value="pick">
+                <label for="redModePick">스포이드</label>
+                <input type="radio" name="redMode" id="redModeAuto" value="auto">
+                <label for="redModeAuto">자동 배경색</label>
+            </div>
+            <input type="color" class="color-swatch" id="redColor" value="#e7e5e4" title="가릴 색">
+            <button class="btn btn-primary" id="redSaveBtn" style="margin-left:8px;">가리고 저장</button>
+            <div class="page-nav">
+                <button id="redPrev">‹</button>
+                <span id="redPageInfo">1 / 1</span>
+                <button id="redNext">›</button>
+            </div>
+        </div>
+        <div class="editor-hint" id="redHint">가릴 부분을 마우스로 드래그하세요. 박스 우상단 ✕로 지울 수 있습니다.</div>
+        <div class="viewer-wrap">
+            <div class="viewer-stage">
+                <canvas id="redCanvas"></canvas>
+                <div class="viewer-overlay" id="redOverlay"></div>
+            </div>
+        </div>
+    </div>
+    <div class="error-msg" id="redError"></div>
+    <div class="result-area" id="redResult">
+        <div class="result-card"><div class="result-info" id="redResultInfo">저장되었습니다.</div></div>
+    </div>
+</section>
+
+<!-- ===== STAMP (글자·이미지 넣기) ===== -->
+<section class="page-section" id="page-stamp">
+    <div class="page-header">
+        <h2>글자·이미지 넣기</h2>
+        <p>글자(이름·연락처 등)나 이미지(도장·사인)를 원하는 자리에 올려놓고 저장합니다.</p>
+    </div>
+    <div class="upload-zone" id="stampUploadZone">
+        <div class="upload-zone-icon">✍️</div>
+        <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-zone-hint"></div>
+        <input type="file" id="stampFileInput" accept=".pdf">
+    </div>
+    <div class="editor-area" id="stampEditor">
+        <div class="editor-toolbar">
+            <button class="btn btn-ghost" id="stampAddTextBtn">＋ 글자</button>
+            <button class="btn btn-ghost" id="stampAddImgBtn">＋ 이미지</button>
+            <input type="file" id="stampImgInput" accept="image/*" style="display:none;">
+            <button class="btn btn-primary" id="stampSaveBtn" style="margin-left:8px;">저장</button>
+            <div class="page-nav">
+                <button id="stampPrev">‹</button>
+                <span id="stampPageInfo">1 / 1</span>
+                <button id="stampNext">›</button>
+            </div>
+        </div>
+        <div class="options-group" id="stampTextPanel" style="display:none;">
+            <label for="stampTextInput">넣을 글자 (여러 줄 가능)</label>
+            <textarea id="stampTextInput" rows="2" style="width:100%; padding:8px 12px; border:1px solid rgba(0,0,0,0.1); border-radius:10px; font-size:14px; font-family:inherit; background:rgba(255,255,255,0.5); resize:vertical;" placeholder="예: OO지점 홍길동 차장&#10;010-1234-5678"></textarea>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+                <label style="margin:0; font-weight:500; font-size:13px;">색</label>
+                <input type="color" class="color-swatch" id="stampTextColor" value="#1c1917">
+                <button class="btn btn-primary" id="stampTextAddBtn" style="padding:6px 16px; font-size:14px;">페이지에 추가</button>
+            </div>
+        </div>
+        <div class="fav-strip" id="stampFavStrip">
+            <span class="fav-label">자주 쓰는 항목:</span>
+            <span id="stampFavList"></span>
+            <button class="btn btn-ghost" id="stampFavSaveBtn" style="padding:4px 12px; font-size:13px;" disabled>☆ 선택한 항목 저장</button>
+        </div>
+        <div class="editor-hint">올린 항목은 드래그로 이동, 모서리 ⬤로 크기 조절, 선택 후 ✕로 삭제할 수 있습니다.</div>
+        <div class="viewer-wrap">
+            <div class="viewer-stage">
+                <canvas id="stampCanvas"></canvas>
+                <div class="viewer-overlay" id="stampOverlay"></div>
+            </div>
+        </div>
+    </div>
+    <div class="error-msg" id="stampError"></div>
+    <div class="result-area" id="stampResult">
+        <div class="result-card"><div class="result-info" id="stampResultInfo">저장되었습니다.</div></div>
+    </div>
+</section>
+
 </main>
 
 <script src="libs/pdf-lib.min.js"></script>
@@ -733,7 +921,7 @@ function showSingleFile(containerId, file) {
 }
 
 // ===== SPA Router =====
-const pages = ['home', 'merge', 'organize', 'watermark', 'image-to-pdf', 'pdf-to-image', 'pdf-to-ppt'];
+const pages = ['home', 'merge', 'organize', 'watermark', 'image-to-pdf', 'pdf-to-image', 'pdf-to-ppt', 'redact', 'stamp'];
 
 function navigateTo(page) {
     window.location.hash = page ? '#' + page : '';
@@ -1343,6 +1531,624 @@ function canvasToBlob(canvas, type, quality) {
             pdf.destroy();
         } catch (e) {
             showError('p2pError', '변환 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+            this.disabled = false;
+        }
+    });
+})();
+
+// ===================================================================
+// 공용: 페이지 뷰어 (가리기·넣기에서 사용)
+// ===================================================================
+function createPageViewer(ids, onPageShown) {
+    const canvas = document.getElementById(ids.canvas);
+    const overlay = document.getElementById(ids.overlay);
+    const info = document.getElementById(ids.info);
+    const prevBtn = document.getElementById(ids.prev);
+    const nextBtn = document.getElementById(ids.next);
+
+    const v = {
+        bytes: null, name: '', pdf: null,
+        cur: 0, num: 0,
+        pageW: 0, pageH: 0,   // 현재 페이지 크기 (pt, 회전 반영)
+        canvas, overlay,
+    };
+
+    async function show(i) {
+        v.cur = i;
+        const page = await v.pdf.getPage(i + 1);
+        const vp1 = page.getViewport({ scale: 1 });
+        v.pageW = vp1.width;
+        v.pageH = vp1.height;
+        const scale = Math.max(1.2, Math.min(2, 1100 / vp1.width));
+        const viewport = page.getViewport({ scale });
+        canvas.width = Math.round(viewport.width);
+        canvas.height = Math.round(viewport.height);
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        info.textContent = `${i + 1} / ${v.num}`;
+        prevBtn.disabled = i === 0;
+        nextBtn.disabled = i === v.num - 1;
+        if (onPageShown) onPageShown(i);
+    }
+
+    v.load = async function (file) {
+        v.name = file.name;
+        const buf = await file.arrayBuffer();
+        v.bytes = buf.slice(0);
+        v.pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+        v.num = v.pdf.numPages;
+        await show(0);
+    };
+    v.show = show;
+
+    prevBtn.addEventListener('click', () => { if (v.cur > 0) show(v.cur - 1); });
+    nextBtn.addEventListener('click', () => { if (v.cur < v.num - 1) show(v.cur + 1); });
+
+    // 마우스 좌표 → 페이지 비율 (0~1)
+    v.toRatio = function (e) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)),
+            y: Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height)),
+        };
+    };
+    return v;
+}
+
+// rgb 배열 → hex
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+// 캔버스의 특정 비율 지점 픽셀 색
+function pickColorAt(canvas, rx, ry) {
+    const x = Math.min(canvas.width - 1, Math.round(rx * canvas.width));
+    const y = Math.min(canvas.height - 1, Math.round(ry * canvas.height));
+    const d = canvas.getContext('2d').getImageData(x, y, 1, 1).data;
+    return rgbToHex(d[0], d[1], d[2]);
+}
+
+// 박스 주변 테두리 픽셀의 중앙값 색 (자동 배경색)
+function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const x0 = Math.round(rx0 * W), y0 = Math.round(ry0 * H);
+    const x1 = Math.round(rx1 * W), y1 = Math.round(ry1 * H);
+    const m = Math.max(4, Math.round(W * 0.005));  // 박스 바깥 여백
+    const rs = [], gs = [], bs = [];
+    function collect(px, py, pw, ph) {
+        px = Math.max(0, px); py = Math.max(0, py);
+        pw = Math.min(pw, W - px); ph = Math.min(ph, H - py);
+        if (pw <= 0 || ph <= 0) return;
+        const d = ctx.getImageData(px, py, pw, ph).data;
+        for (let i = 0; i < d.length; i += 4) { rs.push(d[i]); gs.push(d[i + 1]); bs.push(d[i + 2]); }
+    }
+    collect(x0 - m, y0 - m, (x1 - x0) + 2 * m, m);          // 위
+    collect(x0 - m, y1, (x1 - x0) + 2 * m, m);              // 아래
+    collect(x0 - m, y0, m, y1 - y0);                        // 왼쪽
+    collect(x1, y0, m, y1 - y0);                            // 오른쪽
+    if (rs.length === 0) return '#e7e5e4';
+    const mid = arr => { arr.sort((a, b) => a - b); return arr[Math.floor(arr.length / 2)]; };
+    return rgbToHex(mid(rs), mid(gs), mid(bs));
+}
+
+// ===================================================================
+// 7. 박스로 가리기
+// ===================================================================
+(function () {
+    let boxes = {};   // pageIndex -> [{x0,y0,x1,y1,color}] (비율 좌표)
+    let drawing = null;
+
+    const viewer = createPageViewer(
+        { canvas: 'redCanvas', overlay: 'redOverlay', info: 'redPageInfo', prev: 'redPrev', next: 'redNext' },
+        renderBoxes
+    );
+    const overlay = viewer.overlay;
+
+    function currentMode() {
+        return document.querySelector('input[name="redMode"]:checked').value;
+    }
+
+    function renderBoxes() {
+        overlay.innerHTML = '';
+        (boxes[viewer.cur] || []).forEach((b, idx) => {
+            const el = document.createElement('div');
+            el.className = 'redact-box';
+            el.style.left = (b.x0 * 100) + '%';
+            el.style.top = (b.y0 * 100) + '%';
+            el.style.width = ((b.x1 - b.x0) * 100) + '%';
+            el.style.height = ((b.y1 - b.y0) * 100) + '%';
+            el.style.background = b.color;
+            el.innerHTML = `<button class="box-del" data-index="${idx}">✕</button>`;
+            overlay.appendChild(el);
+        });
+    }
+
+    overlay.addEventListener('click', (e) => {
+        const btn = e.target.closest('.box-del');
+        if (!btn) return;
+        boxes[viewer.cur].splice(parseInt(btn.dataset.index), 1);
+        renderBoxes();
+    });
+
+    overlay.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.box-del')) return;
+        const mode = currentMode();
+        if (mode === 'pick') {
+            const p = viewer.toRatio(e);
+            document.getElementById('redColor').value = pickColorAt(viewer.canvas, p.x, p.y);
+            document.getElementById('redModeCustom').checked = true;
+            overlay.classList.remove('crosshair');
+            return;
+        }
+        e.preventDefault();
+        const start = viewer.toRatio(e);
+        const preview = document.createElement('div');
+        preview.className = 'redact-box';
+        preview.style.background = 'rgba(249,115,22,0.15)';
+        overlay.appendChild(preview);
+        drawing = { start, preview };
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!drawing) return;
+        const cur = viewer.toRatio(e);
+        const x0 = Math.min(drawing.start.x, cur.x), x1 = Math.max(drawing.start.x, cur.x);
+        const y0 = Math.min(drawing.start.y, cur.y), y1 = Math.max(drawing.start.y, cur.y);
+        Object.assign(drawing.preview.style, {
+            left: x0 * 100 + '%', top: y0 * 100 + '%',
+            width: (x1 - x0) * 100 + '%', height: (y1 - y0) * 100 + '%',
+        });
+        drawing.rect = { x0, y0, x1, y1 };
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (!drawing) return;
+        const r = drawing.rect;
+        drawing.preview.remove();
+        if (r && (r.x1 - r.x0) > 0.005 && (r.y1 - r.y0) > 0.005) {
+            const mode = currentMode();
+            let color;
+            if (mode === 'gray') color = '#e7e5e4';
+            else if (mode === 'auto') color = sampleAroundBox(viewer.canvas, r.x0, r.y0, r.x1, r.y1);
+            else color = document.getElementById('redColor').value;
+            if (!boxes[viewer.cur]) boxes[viewer.cur] = [];
+            boxes[viewer.cur].push({ ...r, color });
+            renderBoxes();
+        }
+        drawing = null;
+    });
+
+    document.querySelectorAll('input[name="redMode"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            overlay.classList.toggle('crosshair', currentMode() === 'pick');
+        });
+    });
+
+    setupUploadZone('redUploadZone', 'redFileInput', {
+        async onFiles(files) {
+            hideError('redError');
+            hideResult('redResult');
+            showLoading('PDF 여는 중...');
+            try {
+                boxes = {};
+                await viewer.load(files[0]);
+                document.getElementById('redEditor').classList.add('active');
+            } catch (e) {
+                showError('redError', 'PDF를 여는 중 오류: ' + (e.message || e));
+            } finally {
+                hideLoading();
+            }
+        }
+    });
+
+    function hexToRgb255(hex) {
+        return [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+    }
+
+    document.getElementById('redSaveBtn').addEventListener('click', async function () {
+        const total = Object.values(boxes).reduce((s, a) => s + a.length, 0);
+        if (total === 0) { showError('redError', '가릴 박스를 하나 이상 그려주세요.'); return; }
+        hideError('redError');
+        hideResult('redResult');
+        this.disabled = true;
+        showLoading('가리고 저장하는 중...');
+        try {
+            const { PDFDocument } = PDFLib;
+            const src = await PDFDocument.load(viewer.bytes.slice(0), { ignoreEncryption: true });
+            const out = await PDFDocument.create();
+            for (let i = 0; i < viewer.num; i++) {
+                showLoading(`저장하는 중... (${i + 1}/${viewer.num})`);
+                await tick();
+                const pageBoxes = boxes[i] || [];
+                if (pageBoxes.length === 0) {
+                    const [p] = await out.copyPages(src, [i]);
+                    out.addPage(p);
+                    continue;
+                }
+                // 박스가 있는 페이지: 고해상도로 렌더 → 박스 그림 → 이미지로 평면화
+                const page = await viewer.pdf.getPage(i + 1);
+                const vp1 = page.getViewport({ scale: 1 });
+                const scale = Math.max(2, 2200 / vp1.width);
+                const viewport = page.getViewport({ scale });
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(viewport.width);
+                canvas.height = Math.round(viewport.height);
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport }).promise;
+                pageBoxes.forEach(b => {
+                    ctx.fillStyle = b.color;
+                    ctx.fillRect(b.x0 * canvas.width, b.y0 * canvas.height,
+                                 (b.x1 - b.x0) * canvas.width, (b.y1 - b.y0) * canvas.height);
+                });
+                const blob = await canvasToBlob(canvas, 'image/png');
+                const img = await out.embedPng(await blob.arrayBuffer());
+                const p = out.addPage([vp1.width, vp1.height]);
+                p.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
+            }
+            const bytes = await out.save();
+            downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${baseName(viewer.name)}_가림.pdf`);
+            showResult('redResult', `박스 ${total}개를 가려서 저장했습니다. 가린 페이지는 복구 불가능하게 평면화되었습니다.`);
+        } catch (e) {
+            showError('redError', '저장 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+            this.disabled = false;
+        }
+    });
+})();
+
+// ===================================================================
+// 8. 글자·이미지 넣기
+// ===================================================================
+(function () {
+    const FAV_KEY = 'hw_pdf_tool_stamps';
+    let stamps = {};      // pageIndex -> [item]
+    // item(text): {type:'text', text, color, x, y, fh}  fh = 글자 높이/페이지 높이 비율
+    // item(image): {type:'image', dataUrl, aspect, x, y, w}  w = 폭/페이지 폭 비율
+    let selected = null;  // {pageIndex, idx}
+    let dragCtx = null;
+
+    const viewer = createPageViewer(
+        { canvas: 'stampCanvas', overlay: 'stampOverlay', info: 'stampPageInfo', prev: 'stampPrev', next: 'stampNext' },
+        () => { selected = null; updateFavBtn(); renderStamps(); }
+    );
+    const overlay = viewer.overlay;
+
+    function pageItems() {
+        if (!stamps[viewer.cur]) stamps[viewer.cur] = [];
+        return stamps[viewer.cur];
+    }
+
+    function overlaySize() {
+        const rect = viewer.canvas.getBoundingClientRect();
+        return { w: rect.width, h: rect.height };
+    }
+
+    function renderStamps() {
+        overlay.innerHTML = '';
+        const { w: ow, h: oh } = overlaySize();
+        pageItems().forEach((it, idx) => {
+            const el = document.createElement('div');
+            el.className = 'stamp-el';
+            el.dataset.index = idx;
+            if (selected && selected.idx === idx) el.classList.add('selected');
+            el.style.left = (it.x * 100) + '%';
+            el.style.top = (it.y * 100) + '%';
+            if (it.type === 'text') {
+                const fontPx = it.fh * oh;
+                el.innerHTML = `<div class="stamp-text" style="font-size:${fontPx}px; color:${it.color};">${escapeHtml(it.text)}</div>`;
+            } else {
+                const wPx = it.w * ow;
+                el.style.width = wPx + 'px';
+                el.style.height = (wPx * it.aspect) + 'px';
+                el.innerHTML = `<img src="${it.dataUrl}" draggable="false">`;
+            }
+            el.innerHTML += `<button class="box-del">✕</button><div class="stamp-handle"></div>`;
+            overlay.appendChild(el);
+        });
+    }
+
+    function updateFavBtn() {
+        document.getElementById('stampFavSaveBtn').disabled = !selected;
+    }
+
+    function selectItem(idx) {
+        selected = idx === null ? null : { pageIndex: viewer.cur, idx };
+        updateFavBtn();
+        renderStamps();
+    }
+
+    // ----- 드래그 이동 / 크기 조절 -----
+    overlay.addEventListener('mousedown', (e) => {
+        const el = e.target.closest('.stamp-el');
+        if (!el) { selectItem(null); return; }
+        e.preventDefault();
+        const idx = parseInt(el.dataset.index);
+        if (selected === null || selected.idx !== idx) selectItem(idx);
+        const it = pageItems()[idx];
+        const start = viewer.toRatio(e);
+        if (e.target.classList.contains('stamp-handle')) {
+            dragCtx = { kind: 'resize', it, start, fh0: it.fh, w0: it.w };
+        } else if (!e.target.classList.contains('box-del')) {
+            dragCtx = { kind: 'move', it, start, x0: it.x, y0: it.y };
+        }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!dragCtx) return;
+        const cur = viewer.toRatio(e);
+        const dx = cur.x - dragCtx.start.x;
+        const dy = cur.y - dragCtx.start.y;
+        if (dragCtx.kind === 'move') {
+            dragCtx.it.x = Math.min(0.98, Math.max(0, dragCtx.x0 + dx));
+            dragCtx.it.y = Math.min(0.98, Math.max(0, dragCtx.y0 + dy));
+        } else {
+            if (dragCtx.it.type === 'text') {
+                dragCtx.it.fh = Math.min(0.3, Math.max(0.008, dragCtx.fh0 + dy));
+            } else {
+                dragCtx.it.w = Math.min(0.95, Math.max(0.02, dragCtx.w0 + dx));
+            }
+        }
+        renderStamps();
+    });
+
+    document.addEventListener('mouseup', () => { dragCtx = null; });
+
+    overlay.addEventListener('click', (e) => {
+        const btn = e.target.closest('.box-del');
+        if (!btn) return;
+        const el = e.target.closest('.stamp-el');
+        pageItems().splice(parseInt(el.dataset.index), 1);
+        selectItem(null);
+    });
+
+    // ----- 글자 추가 -----
+    document.getElementById('stampAddTextBtn').addEventListener('click', () => {
+        const panel = document.getElementById('stampTextPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.getElementById('stampTextAddBtn').addEventListener('click', () => {
+        const text = document.getElementById('stampTextInput').value.trim();
+        if (!text) return;
+        const color = document.getElementById('stampTextColor').value;
+        pageItems().push({ type: 'text', text, color, x: 0.35, y: 0.45, fh: 0.025 });
+        document.getElementById('stampTextPanel').style.display = 'none';
+        selectItem(pageItems().length - 1);
+    });
+
+    // ----- 이미지 추가 -----
+    document.getElementById('stampAddImgBtn').addEventListener('click', () => {
+        document.getElementById('stampImgInput').click();
+    });
+
+    function imageFileToDataUrl(file, maxDim) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                let { naturalWidth: w, naturalHeight: h } = img;
+                const k = Math.min(1, maxDim / Math.max(w, h));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(w * k);
+                canvas.height = Math.round(h * k);
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve({ dataUrl: canvas.toDataURL('image/png'), aspect: h / w });
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 읽을 수 없습니다.')); };
+            img.src = url;
+        });
+    }
+
+    document.getElementById('stampImgInput').addEventListener('change', async function () {
+        if (!this.files[0]) return;
+        try {
+            const { dataUrl, aspect } = await imageFileToDataUrl(this.files[0], 800);
+            pageItems().push({ type: 'image', dataUrl, aspect, x: 0.4, y: 0.4, w: 0.18 });
+            selectItem(pageItems().length - 1);
+        } catch (e) {
+            showError('stampError', e.message);
+        }
+        this.value = '';
+    });
+
+    // ----- 자주 쓰는 항목 (localStorage) -----
+    function loadFavs() {
+        try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; }
+        catch (e) { return []; }
+    }
+    function saveFavs(favs) {
+        try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); }
+        catch (e) { showError('stampError', '저장 공간이 부족해 즐겨찾기를 저장하지 못했습니다.'); }
+    }
+
+    function renderFavs() {
+        const wrap = document.getElementById('stampFavList');
+        const favs = loadFavs();
+        wrap.innerHTML = favs.length === 0 ? '<span style="color:var(--color-text-secondary);">아직 없음</span>' : '';
+        favs.forEach((f, idx) => {
+            const chip = document.createElement('span');
+            chip.className = 'fav-chip';
+            chip.dataset.index = idx;
+            if (f.type === 'text') {
+                const firstLine = f.text.split('\n')[0];
+                chip.innerHTML = `<span style="color:${f.color};">${escapeHtml(firstLine.slice(0, 14))}</span>`;
+            } else {
+                chip.innerHTML = `<img src="${f.dataUrl}">`;
+            }
+            chip.innerHTML += `<button class="fav-chip-del" title="즐겨찾기에서 삭제">✕</button>`;
+            wrap.appendChild(chip);
+        });
+    }
+
+    document.getElementById('stampFavList').addEventListener('click', (e) => {
+        const chip = e.target.closest('.fav-chip');
+        if (!chip) return;
+        const idx = parseInt(chip.dataset.index);
+        const favs = loadFavs();
+        if (e.target.closest('.fav-chip-del')) {
+            favs.splice(idx, 1);
+            saveFavs(favs);
+            renderFavs();
+            return;
+        }
+        const f = favs[idx];
+        if (f.type === 'text') {
+            pageItems().push({ type: 'text', text: f.text, color: f.color, x: 0.35, y: 0.45, fh: f.fh || 0.025 });
+        } else {
+            pageItems().push({ type: 'image', dataUrl: f.dataUrl, aspect: f.aspect, x: 0.4, y: 0.4, w: f.w || 0.18 });
+        }
+        selectItem(pageItems().length - 1);
+    });
+
+    document.getElementById('stampFavSaveBtn').addEventListener('click', () => {
+        if (!selected) return;
+        const it = pageItems()[selected.idx];
+        const favs = loadFavs();
+        if (it.type === 'text') favs.push({ type: 'text', text: it.text, color: it.color, fh: it.fh });
+        else favs.push({ type: 'image', dataUrl: it.dataUrl, aspect: it.aspect, w: it.w });
+        saveFavs(favs);
+        renderFavs();
+    });
+
+    // ----- 파일 열기 -----
+    setupUploadZone('stampUploadZone', 'stampFileInput', {
+        async onFiles(files) {
+            hideError('stampError');
+            hideResult('stampResult');
+            showLoading('PDF 여는 중...');
+            try {
+                stamps = {};
+                selected = null;
+                await viewer.load(files[0]);
+                document.getElementById('stampEditor').classList.add('active');
+                renderFavs();
+                updateFavBtn();
+            } catch (e) {
+                showError('stampError', 'PDF를 여는 중 오류: ' + (e.message || e));
+            } finally {
+                hideLoading();
+            }
+        }
+    });
+
+    // ----- 글자 → 고해상도 이미지 -----
+    function textToCanvas(text, color, fontPx) {
+        const lines = text.split('\n');
+        const probe = document.createElement('canvas').getContext('2d');
+        const font = `600 ${fontPx}px 'Pretendard Variable', Pretendard, -apple-system, 'Malgun Gothic', sans-serif`;
+        probe.font = font;
+        const lineH = fontPx * 1.25;
+        const w = Math.ceil(Math.max(...lines.map(l => probe.measureText(l).width))) + 4;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(2, w);
+        canvas.height = Math.ceil(lineH * lines.length);
+        const ctx = canvas.getContext('2d');
+        ctx.font = font;
+        ctx.fillStyle = color;
+        ctx.textBaseline = 'top';
+        lines.forEach((l, i) => ctx.fillText(l, 2, i * lineH + fontPx * 0.1));
+        return canvas;
+    }
+
+    async function embedDataUrl(doc, dataUrl) {
+        return dataUrl.startsWith('data:image/jpeg') ? doc.embedJpg(dataUrl) : doc.embedPng(dataUrl);
+    }
+
+    function loadImageEl(dataUrl) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('이미지를 읽을 수 없습니다.'));
+            img.src = dataUrl;
+        });
+    }
+
+    // ----- 저장 -----
+    document.getElementById('stampSaveBtn').addEventListener('click', async function () {
+        const total = Object.values(stamps).reduce((s, a) => s + a.length, 0);
+        if (total === 0) { showError('stampError', '넣을 글자나 이미지를 하나 이상 올려주세요.'); return; }
+        hideError('stampError');
+        hideResult('stampResult');
+        this.disabled = true;
+        showLoading('저장하는 중...');
+        try {
+            const { PDFDocument } = PDFLib;
+            const src = await PDFDocument.load(viewer.bytes.slice(0), { ignoreEncryption: true });
+            const out = await PDFDocument.create();
+            for (let i = 0; i < viewer.num; i++) {
+                showLoading(`저장하는 중... (${i + 1}/${viewer.num})`);
+                await tick();
+                const items = stamps[i] || [];
+                const [page] = await out.copyPages(src, [i]);
+                let rot = page.getRotation().angle % 360;
+                if (rot < 0) rot += 360;
+
+                if (items.length === 0) {
+                    out.addPage(page);
+                    continue;
+                }
+
+                if (rot === 0) {
+                    // 원본 페이지를 그대로 두고 위에 이미지만 얹음 (텍스트 화질 유지)
+                    out.addPage(page);
+                    const pw = page.getWidth(), ph = page.getHeight();
+                    for (const it of items) {
+                        let img, wPt, hPt, x = it.x * pw, y;
+                        if (it.type === 'text') {
+                            const fontPt = it.fh * ph;
+                            const canvas = textToCanvas(it.text, it.color, Math.max(8, Math.round(fontPt * 3)));
+                            wPt = canvas.width / 3;
+                            hPt = canvas.height / 3;
+                            img = await out.embedPng(canvas.toDataURL('image/png'));
+                        } else {
+                            img = await embedDataUrl(out, it.dataUrl);
+                            wPt = it.w * pw;
+                            hPt = wPt * it.aspect;
+                        }
+                        y = ph - it.y * ph - hPt;
+                        page.drawImage(img, { x, y, width: wPt, height: hPt });
+                    }
+                } else {
+                    // 회전된 페이지: 화면에 보이는 그대로 평면화해서 저장
+                    const pjsPage = await viewer.pdf.getPage(i + 1);
+                    const vp1 = pjsPage.getViewport({ scale: 1 });
+                    const scale = Math.max(2, 2200 / vp1.width);
+                    const viewport = pjsPage.getViewport({ scale });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(viewport.width);
+                    canvas.height = Math.round(viewport.height);
+                    const ctx = canvas.getContext('2d');
+                    await pjsPage.render({ canvasContext: ctx, viewport }).promise;
+                    const cw = canvas.width, ch = canvas.height;
+                    for (const it of items) {
+                        if (it.type === 'text') {
+                            const fontPx = it.fh * ch;
+                            const lines = it.text.split('\n');
+                            ctx.font = `600 ${fontPx}px 'Pretendard Variable', Pretendard, -apple-system, 'Malgun Gothic', sans-serif`;
+                            ctx.fillStyle = it.color;
+                            ctx.textBaseline = 'top';
+                            lines.forEach((l, li) => ctx.fillText(l, it.x * cw, it.y * ch + li * fontPx * 1.25));
+                        } else {
+                            const imgEl = await loadImageEl(it.dataUrl);
+                            const wPx = it.w * cw;
+                            ctx.drawImage(imgEl, it.x * cw, it.y * ch, wPx, wPx * it.aspect);
+                        }
+                    }
+                    const blob = await canvasToBlob(canvas, 'image/png');
+                    const img = await out.embedPng(await blob.arrayBuffer());
+                    const p = out.addPage([vp1.width, vp1.height]);
+                    p.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
+                }
+            }
+            const bytes = await out.save();
+            downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${baseName(viewer.name)}_삽입.pdf`);
+            showResult('stampResult', `항목 ${total}개를 넣어 저장했습니다.`);
+        } catch (e) {
+            showError('stampError', '저장 중 오류: ' + (e.message || e));
         } finally {
             hideLoading();
             this.disabled = false;
