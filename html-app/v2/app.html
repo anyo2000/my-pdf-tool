@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H.W. PDF TOOL v2</title>
+    <style>
+/* ===== Design System ===== */
+:root {
+    --color-primary: #f97316;
+    --color-primary-hover: #ea580c;
+    --color-bg: #f5f5f4;
+    --color-text: #1c1917;
+    --color-text-secondary: #78716c;
+    --color-border: rgba(0, 0, 0, 0.06);
+    --color-success: #16a34a;
+    --color-error: #dc2626;
+    --color-error-bg: #fef2f2;
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.7);
+    --glass-blur: 16px;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+body::before {
+    top: -120px; right: -80px; width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, rgba(251, 146, 60, 0.05) 50%, transparent 70%);
+}
+body::after {
+    bottom: -150px; left: -80px; width: 550px; height: 550px;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.08) 0%, rgba(254, 215, 170, 0.06) 40%, transparent 70%);
+}
+::selection { background: rgba(249, 115, 22, 0.2); color: var(--color-text); }
+
+/* ===== Navbar ===== */
+.navbar {
+    background: rgba(245, 245, 244, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 16px;
+}
+.nav-logo {
+    font-size: 18px; font-weight: 700; color: var(--color-text);
+    text-decoration: none; letter-spacing: -0.02em; cursor: pointer;
+}
+.nav-back {
+    display: none; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 500; color: var(--color-text-secondary);
+    cursor: pointer; background: none; border: none; font-family: inherit;
+    padding: 4px 8px; border-radius: 6px; transition: all var(--transition);
+}
+.nav-back:hover { background: rgba(0,0,0,0.05); color: var(--color-text); }
+.nav-back.visible { display: flex; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 32px 24px; position: relative; z-index: 1; }
+
+.hero { text-align: center; margin-bottom: 48px; padding-top: 16px; }
+.hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.03em; }
+.hero-desc { color: var(--color-text-secondary); font-size: 15px; }
+
+/* ===== Card Grid ===== */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all var(--transition);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    position: relative;
+}
+.card:hover {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(249, 115, 22, 0.5);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), 0 0 0 2px rgba(249, 115, 22, 0.15);
+}
+.card-icon { font-size: 28px; margin-bottom: 14px; }
+.card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.01em; }
+.card p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; }
+.card.soon { cursor: default; opacity: 0.55; }
+.card.soon:hover { transform: none; border-color: var(--glass-border); box-shadow: var(--shadow); background: var(--glass-bg); }
+.badge-soon {
+    position: absolute; top: 14px; right: 14px;
+    font-size: 11px; font-weight: 600; color: #92400e;
+    background: #fef3c7; border-radius: 20px; padding: 2px 10px;
+}
+
+.page-header { margin-bottom: 32px; }
+.page-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.02em; }
+.page-header p { color: var(--color-text-secondary); font-size: 14px; }
+
+/* ===== Upload Zone ===== */
+.upload-zone {
+    border: 1.5px dashed rgba(0, 0, 0, 0.12);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+.upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--color-primary);
+    background: rgba(249, 115, 22, 0.04);
+}
+.upload-zone-icon { font-size: 40px; margin-bottom: 12px; }
+.upload-zone-text { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.upload-zone-hint { font-size: 13px; color: var(--color-text-secondary); }
+.upload-zone input[type="file"] { display: none; }
+
+/* ===== File List ===== */
+.file-list { list-style: none; margin-top: 16px; }
+.file-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    cursor: grab;
+    transition: background var(--transition);
+}
+.file-item:hover { background: rgba(255, 255, 255, 0.75); }
+.file-item.dragging { opacity: 0.5; }
+.file-item-name {
+    font-size: 14px; font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; margin-right: 12px;
+}
+.file-item-size { font-size: 12px; color: var(--color-text-secondary); margin-right: 12px; white-space: nowrap; }
+.file-item-remove {
+    background: none; border: none; color: var(--color-text-secondary);
+    cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1;
+    transition: color var(--transition);
+}
+.file-item-remove:hover { color: var(--color-error); }
+
+/* ===== Options ===== */
+.options-group {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-top: 16px;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+.options-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.options-group select, .options-group input[type="text"], .options-group input[type="number"] {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-sm);
+    font-size: 14px; font-family: inherit;
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--color-text);
+    transition: border-color var(--transition);
+}
+.options-group select:focus, .options-group input:focus { outline: none; border-color: var(--color-primary); }
+.options-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.options-row > div { flex: 1; min-width: 140px; }
+
+/* ===== Buttons ===== */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 10px 24px;
+    border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 600; font-family: inherit;
+    border: none; cursor: pointer;
+    transition: all var(--transition);
+    text-decoration: none;
+}
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-hover); box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25); }
+.btn-primary:disabled { background: #fdba74; cursor: not-allowed; box-shadow: none; }
+.btn-ghost {
+    background: none; border: 1px solid rgba(0,0,0,0.12); color: var(--color-text);
+}
+.btn-ghost:hover { background: rgba(0,0,0,0.04); }
+.action-bar { margin-top: 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* ===== Result / Error ===== */
+.result-area { margin-top: 24px; display: none; }
+.result-area.active { display: block; }
+.result-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+.result-info { font-size: 14px; color: var(--color-text-secondary); }
+.result-info strong { color: var(--color-text); }
+.error-msg {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-top: 16px;
+    display: none;
+}
+.error-msg.active { display: block; }
+
+/* ===== Loading Overlay ===== */
+.loading-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(245, 245, 244, 0.7);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+}
+.loading-overlay.active { display: flex; }
+.spinner {
+    width: 40px; height: 40px;
+    border: 3px solid rgba(0,0,0,0.08);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 15px; font-weight: 500; color: var(--color-text-secondary); }
+
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* ===== Thumbnail Grid (페이지 정리) ===== */
+.thumb-toolbar {
+    display: none;
+    align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-top: 20px;
+}
+.thumb-toolbar.active { display: flex; }
+.thumb-count { font-size: 14px; color: var(--color-text-secondary); margin-left: auto; }
+.thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+}
+/* 가로 문서: 칸을 넓게, 미리보기 높이는 낮게 */
+.thumb-grid.landscape { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.thumb-grid.landscape .thumb-img-wrap { height: 160px; }
+.thumb-item {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    text-align: center;
+    cursor: grab;
+    transition: box-shadow var(--transition), opacity 0.2s;
+    box-shadow: var(--shadow);
+}
+.thumb-item.dragging { opacity: 0.4; }
+.thumb-item.dragover-target { outline: 2px dashed var(--color-primary); outline-offset: 2px; }
+.thumb-img-wrap {
+    display: flex; align-items: center; justify-content: center;
+    height: 200px; overflow: hidden;
+    background: rgba(255,255,255,0.6);
+    border-radius: 6px;
+}
+.thumb-img-wrap img {
+    max-width: 96%; max-height: 96%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: transform 0.25s ease;
+}
+.thumb-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 8px;
+}
+.thumb-num { font-size: 12px; color: var(--color-text-secondary); font-weight: 600; }
+.thumb-actions { display: flex; gap: 2px; }
+.thumb-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 15px; padding: 2px 5px; border-radius: 6px;
+    color: var(--color-text-secondary);
+    transition: all 0.15s;
+}
+.thumb-btn:hover { background: rgba(0,0,0,0.06); color: var(--color-text); }
+.thumb-btn.del:hover { color: var(--color-error); background: var(--color-error-bg); }
+
+@media (max-width: 600px) {
+    .container { padding: 20px 16px; }
+    .card-grid { grid-template-columns: 1fr 1fr; }
+    .hero h1 { font-size: 24px; }
+    .upload-zone { padding: 32px 16px; }
+    .options-row { flex-direction: column; }
+    .thumb-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .thumb-img-wrap { height: 130px; }
+}
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a class="nav-logo" onclick="navigateTo('')">H.W. PDF TOOL <span style="color:var(--color-primary)">v2</span></a>
+    <button class="nav-back" id="navBack" onclick="navigateTo('')">← 홈으로</button>
+</nav>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">처리 중...</div>
+</div>
+
+<main class="container">
+
+<!-- ===== HOME ===== -->
+<section class="page-section active" id="page-home">
+    <div class="hero">
+        <h1>H.W. PDF TOOL</h1>
+        <p class="hero-desc">모든 작업이 이 PC 안에서만 처리됩니다 · 인터넷 불필요</p>
+    </div>
+    <div class="card-grid">
+        <a class="card" onclick="navigateTo('merge')">
+            <div class="card-icon">📎</div>
+            <h3>PDF 합치기</h3>
+            <p>여러 PDF를 하나로</p>
+        </a>
+        <a class="card" onclick="navigateTo('organize')">
+            <div class="card-icon">🗂️</div>
+            <h3>페이지 정리</h3>
+            <p>페이지를 보면서 삭제 · 순서변경 · 회전 · 뽑아내기</p>
+        </a>
+        <a class="card" onclick="navigateTo('watermark')">
+            <div class="card-icon">🧽</div>
+            <h3>워터마크 지우기</h3>
+            <p>노트북LM 로고를 흔적 없이 (PDF · PPTX)</p>
+        </a>
+        <a class="card" onclick="navigateTo('image-to-pdf')">
+            <div class="card-icon">🖼️</div>
+            <h3>이미지 → PDF</h3>
+            <p>사진 · 이미지를 PDF로 묶기</p>
+        </a>
+        <a class="card" onclick="navigateTo('pdf-to-image')">
+            <div class="card-icon">📷</div>
+            <h3>PDF → 이미지</h3>
+            <p>페이지를 그림 파일로</p>
+        </a>
+        <a class="card" onclick="navigateTo('pdf-to-ppt')">
+            <div class="card-icon">📊</div>
+            <h3>PDF → PPT</h3>
+            <p>페이지를 슬라이드로</p>
+        </a>
+        <a class="card soon">
+            <span class="badge-soon">준비중</span>
+            <div class="card-icon">🩹</div>
+            <h3>박스로 가리기</h3>
+            <p>보이면 안 되는 부분을 덮어서 저장</p>
+        </a>
+        <a class="card soon">
+            <span class="badge-soon">준비중</span>
+            <div class="card-icon">✍️</div>
+            <h3>글자·이미지 넣기</h3>
+            <p>도장, 사인, 연락처를 원하는 자리에</p>
+        </a>
+    </div>
+</section>
+
+<!-- ===== MERGE ===== -->
+<section class="page-section" id="page-merge">
+    <div class="page-header">
+        <h2>PDF 합치기</h2>
+        <p>여러 PDF 파일을 하나로 합칩니다. 드래그로 순서를 바꿀 수 있습니다.</p>
+    </div>
+    <div class="upload-zone" id="mergeUploadZone">
+        <div class="upload-zone-icon">📎</div>
+        <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-zone-hint">여러 파일 선택 가능</div>
+        <input type="file" id="mergeFileInput" accept=".pdf" multiple>
+    </div>
+    <div class="file-list" id="mergeFileList"></div>
+    <div class="action-bar">
+        <button class="btn btn-primary" id="mergeBtn" disabled>합치기</button>
+    </div>
+    <div class="error-msg" id="mergeError"></div>
+    <div class="result-area" id="mergeResult">
+        <div class="result-card"><div class="result-info" id="mergeResultInfo">완료되었습니다.</div></div>
+    </div>
+</section>
+
+<!-- ===== ORGANIZE (페이지 정리) ===== -->
+<section class="page-section" id="page-organize">
+    <div class="page-header">
+        <h2>페이지 정리</h2>
+        <p>페이지를 눈으로 보면서 삭제하고, 드래그로 순서를 바꾸고, 회전할 수 있습니다.</p>
+    </div>
+    <div class="upload-zone" id="orgUploadZone">
+        <div class="upload-zone-icon">🗂️</div>
+        <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-zone-hint">불러온 뒤 각 페이지에서 🔄 회전 · ✕ 삭제</div>
+        <input type="file" id="orgFileInput" accept=".pdf">
+    </div>
+    <div class="thumb-toolbar" id="orgToolbar">
+        <button class="btn btn-primary" id="orgSaveBtn">이대로 저장</button>
+        <button class="btn btn-ghost" id="orgResetBtn">처음으로 되돌리기</button>
+        <span class="thumb-count" id="orgCount"></span>
+    </div>
+    <div class="thumb-grid" id="orgGrid"></div>
+    <div class="error-msg" id="orgError"></div>
+    <div class="result-area" id="orgResult">
+        <div class="result-card"><div class="result-info" id="orgResultInfo">저장되었습니다.</div></div>
+    </div>
+</section>
+
+<!-- ===== WATERMARK (워터마크 지우기) ===== -->
+<section class="page-section" id="page-watermark">
+    <div class="page-header">
+        <h2>워터마크 지우기</h2>
+        <p>노트북LM이 만든 PDF · PPTX 우하단의 NotebookLM 로고를 주변 배경색으로 자연스럽게 덮습니다.</p>
+    </div>
+    <div class="upload-zone" id="wmUploadZone">
+        <div class="upload-zone-icon">🧽</div>
+        <div class="upload-zone-text">PDF 또는 PPTX 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-zone-hint">노트북LM에서 다운로드한 파일</div>
+        <input type="file" id="wmFileInput" accept=".pdf,.pptx">
+    </div>
+    <div class="file-list" id="wmFileList"></div>
+    <div class="action-bar">
+        <button class="btn btn-primary" id="wmBtn" disabled>워터마크 지우기</button>
+    </div>
+    <div class="error-msg" id="wmError"></div>
+    <div class="result-area" id="wmResult">
+        <div class="result-card"><div class="result-info" id="wmResultInfo">완료되었습니다.</div></div>
+    </div>
+</section>
+
+<!-- ===== IMAGE TO PDF ===== -->
+<section class="page-section" id="page-image-to-pdf">
+    <div class="page-header">
+        <h2>이미지 → PDF</h2>
+        <p>사진과 이미지를 한 장씩 페이지로 넣어 PDF 한 개로 묶습니다. 드래그로 순서를 바꿀 수 있습니다.</p>
+    </div>
+    <div class="upload-zone" id="i2pUploadZone">
+        <div class="upload-zone-icon">🖼️</div>
+        <div class="upload-zone-text">이미지 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-zone-hint">JPG · PNG · WEBP, 여러 장 선택 가능</div>
+        <input type="file" id="i2pFileInput" accept="image/*" multiple>
+    </div>
+    <div class="thumb-grid" id="i2pGrid"></div>
+    <div class="action-bar">
+        <button class="btn btn-primary" id="i2pBtn" disabled>PDF로 묶기</button>
+    </div>
+    <div class="error-msg" id="i2pError"></div>
+    <div class="result-area" id="i2pResult">
+        <div class="result-card"><div class="result-info" id="i2pResultInfo">완료되었습니다.</div></div>
+    </div>
+</section>
+
+<!-- ===== PDF TO IMAGE ===== -->
+<section class="page-section" id="page-pdf-to-image">
+    <div class="page-header">
+        <h2>PDF → 이미지</h2>
+        <p>PDF 페이지를 그림 파일로 변환합니다. 여러 장이면 ZIP으로 묶어 내려받습니다.</p>
+    </div>
+    <div class="upload-zone" id="p2iUploadZone">
+        <div class="upload-zone-icon">📷</div>
+        <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-zone-hint"></div>
+        <input type="file" id="p2iFileInput" accept=".pdf">
+    </div>
+    <div id="p2iOptionsArea" style="display:none;">
+        <div class="file-list" id="p2iFileList"></div>
+        <div class="options-group">
+            <div class="options-row">
+                <div>
+                    <label for="p2iFormat">파일 형식</label>
+                    <select id="p2iFormat">
+                        <option value="png">PNG (선명함)</option>
+                        <option value="jpeg">JPG (가벼움)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="p2iScale">화질</label>
+                    <select id="p2iScale">
+                        <option value="1">보통 (빠름)</option>
+                        <option value="1.5" selected>좋음 (권장)</option>
+                        <option value="2">매우 좋음 (느림)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="action-bar">
+            <button class="btn btn-primary" id="p2iBtn">변환하기</button>
+        </div>
+    </div>
+    <div class="error-msg" id="p2iError"></div>
+    <div class="result-area" id="p2iResult">
+        <div class="result-card"><div class="result-info" id="p2iResultInfo">완료되었습니다.</div></div>
+    </div>
+</section>
+
+<!-- ===== PDF TO PPT ===== -->
+<section class="page-section" id="page-pdf-to-ppt">
+    <div class="page-header">
+        <h2>PDF → PPT</h2>
+        <p>PDF 각 페이지를 슬라이드 한 장으로 만들어 파워포인트 파일로 변환합니다.</p>
+    </div>
+    <div class="upload-zone" id="p2pUploadZone">
+        <div class="upload-zone-icon">📊</div>
+        <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-zone-hint"></div>
+        <input type="file" id="p2pFileInput" accept=".pdf">
+    </div>
+    <div id="p2pOptionsArea" style="display:none;">
+        <div class="file-list" id="p2pFileList"></div>
+        <div class="options-group">
+            <label for="p2pScale">화질</label>
+            <select id="p2pScale">
+                <option value="1">보통 (빠름, 가벼운 파일)</option>
+                <option value="1.5" selected>좋음 (권장)</option>
+                <option value="2">매우 좋음 (느림, 큰 파일)</option>
+            </select>
+        </div>
+        <div class="action-bar">
+            <button class="btn btn-primary" id="p2pBtn">변환하기</button>
+        </div>
+    </div>
+    <div class="error-msg" id="p2pError"></div>
+    <div class="result-area" id="p2pResult">
+        <div class="result-card"><div class="result-info" id="p2pResultInfo">완료되었습니다.</div></div>
+    </div>
+</section>
+
+</main>
+
+<script src="libs/pdf-lib.min.js"></script>
+<script src="libs/pdf.min.js"></script>
+<script src="libs/pdf.worker.min.js"></script>
+<script src="libs/jszip.min.js"></script>
+<script src="libs/pptxgen.bundle.js"></script>
+
+<script>
+/* ===================================================================
+   H.W. PDF TOOL v2 — 단일 HTML, 모든 처리는 브라우저 안에서만
+   =================================================================== */
+
+// pdf.js: 워커 파일을 같은 문서에 포함했으므로 메인 스레드에서 동작 (file:// 호환)
+// (workerSrc를 비워두면 전역 pdfjsWorker를 자동으로 사용)
+
+// ===== Utilities =====
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function baseName(filename) {
+    return filename.replace(/\.[^.]+$/, '');
+}
+
+function showError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; el.classList.add('active'); }
+}
+function hideError(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+}
+function showResult(id, msg) {
+    const area = document.getElementById(id);
+    if (!area) return;
+    if (msg) {
+        const info = area.querySelector('.result-info');
+        if (info) info.textContent = msg;
+    }
+    area.classList.add('active');
+}
+function hideResult(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+}
+function showLoading(text) {
+    document.getElementById('loadingText').textContent = text || '처리 중...';
+    document.getElementById('loadingOverlay').classList.add('active');
+}
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('active');
+}
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+// 화면 갱신 기회를 주기 위한 짧은 양보 (메인 스레드 처리라 필요)
+function tick() {
+    return new Promise(r => setTimeout(r, 0));
+}
+
+// ===== Upload Zone =====
+function setupUploadZone(zoneId, inputId, opts = {}) {
+    const zone = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    if (!zone || !input) return;
+
+    const multiple = opts.multiple || false;
+    const pattern = opts.pattern || /\.pdf$/i;
+    const onFiles = opts.onFiles || function () {};
+
+    zone.addEventListener('click', () => input.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(f => pattern.test(f.name));
+        if (files.length === 0) return;
+        if (!multiple) files.splice(1);
+        onFiles(files);
+    });
+    input.addEventListener('change', () => {
+        const files = Array.from(input.files).filter(f => pattern.test(f.name));
+        if (files.length > 0) onFiles(files);
+        input.value = '';
+    });
+}
+
+// ===== File List (드래그 순서변경) =====
+function createFileList(containerId, files, onChange) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    files.forEach((file, idx) => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.draggable = true;
+        item.dataset.index = idx;
+        item.innerHTML = `
+            <span class="file-item-name">${escapeHtml(file.name)}</span>
+            <span class="file-item-size">${formatFileSize(file.size)}</span>
+            <button class="file-item-remove" data-index="${idx}">&times;</button>
+        `;
+        container.appendChild(item);
+    });
+
+    if (!container.dataset.bound) {
+        container.dataset.bound = '1';
+        container.addEventListener('dragstart', (e) => {
+            const item = e.target.closest('.file-item');
+            if (!item) return;
+            container.dataset.dragIdx = item.dataset.index;
+            item.classList.add('dragging');
+        });
+        container.addEventListener('dragend', (e) => {
+            const item = e.target.closest('.file-item');
+            if (item) item.classList.remove('dragging');
+        });
+        container.addEventListener('dragover', (e) => e.preventDefault());
+        container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const target = e.target.closest('.file-item');
+            const dragIdx = parseInt(container.dataset.dragIdx);
+            if (!target || isNaN(dragIdx)) return;
+            const dropIdx = parseInt(target.dataset.index);
+            if (dragIdx === dropIdx) return;
+            const arr = container._files;
+            const moved = arr.splice(dragIdx, 1)[0];
+            arr.splice(dropIdx, 0, moved);
+            createFileList(containerId, arr, container._onChange);
+            if (container._onChange) container._onChange();
+        });
+        container.addEventListener('click', (e) => {
+            const btn = e.target.closest('.file-item-remove');
+            if (!btn) return;
+            const arr = container._files;
+            arr.splice(parseInt(btn.dataset.index), 1);
+            createFileList(containerId, arr, container._onChange);
+            if (container._onChange) container._onChange();
+        });
+    }
+    container._files = files;
+    container._onChange = onChange;
+}
+
+function showSingleFile(containerId, file) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = `<div class="file-item" style="cursor:default;"><span class="file-item-name">${escapeHtml(file.name)}</span><span class="file-item-size">${formatFileSize(file.size)}</span></div>`;
+}
+
+// ===== SPA Router =====
+const pages = ['home', 'merge', 'organize', 'watermark', 'image-to-pdf', 'pdf-to-image', 'pdf-to-ppt'];
+
+function navigateTo(page) {
+    window.location.hash = page ? '#' + page : '';
+}
+
+function handleRoute() {
+    let hash = window.location.hash.replace('#', '') || 'home';
+    if (!pages.includes(hash)) hash = 'home';
+    pages.forEach(p => {
+        const el = document.getElementById('page-' + p);
+        if (el) el.classList.toggle('active', p === hash);
+    });
+    document.getElementById('navBack').classList.toggle('visible', hash !== 'home');
+}
+window.addEventListener('hashchange', handleRoute);
+window.addEventListener('load', handleRoute);
+
+// ===== 공통: pdf.js로 페이지를 캔버스에 렌더 =====
+async function renderPdfPage(pdf, pageNum, scale) {
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(viewport.width);
+    canvas.height = Math.round(viewport.height);
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    return { canvas, ctx, viewport, page };
+}
+
+function canvasToBlob(canvas, type, quality) {
+    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+}
+
+// ===================================================================
+// 1. PDF 합치기
+// ===================================================================
+(function () {
+    let files = [];
+
+    function updateUI() {
+        createFileList('mergeFileList', files, updateUI);
+        document.getElementById('mergeBtn').disabled = files.length < 2;
+    }
+
+    setupUploadZone('mergeUploadZone', 'mergeFileInput', {
+        multiple: true,
+        onFiles(newFiles) {
+            hideError('mergeError');
+            files = files.concat(newFiles);
+            updateUI();
+        }
+    });
+
+    document.getElementById('mergeBtn').addEventListener('click', async function () {
+        if (files.length < 2) return;
+        hideError('mergeError');
+        hideResult('mergeResult');
+        this.disabled = true;
+        showLoading('PDF 합치는 중...');
+        try {
+            const { PDFDocument } = PDFLib;
+            const merged = await PDFDocument.create();
+            for (let i = 0; i < files.length; i++) {
+                showLoading(`합치는 중... (${i + 1}/${files.length})`);
+                await tick();
+                const bytes = await files[i].arrayBuffer();
+                const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+                const copied = await merged.copyPages(src, src.getPageIndices());
+                copied.forEach(p => merged.addPage(p));
+            }
+            const out = await merged.save();
+            downloadBlob(new Blob([out], { type: 'application/pdf' }), '합친파일.pdf');
+            showResult('mergeResult', `${files.length}개 파일을 합쳤습니다. "합친파일.pdf"로 저장됩니다.`);
+        } catch (e) {
+            showError('mergeError', '합치는 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+            this.disabled = false;
+        }
+    });
+})();
+
+// ===================================================================
+// 2. 페이지 정리 (썸네일: 삭제·순서변경·회전)
+// ===================================================================
+(function () {
+    let srcBytes = null;       // 원본 PDF bytes (pdf-lib용 복사본)
+    let srcName = '';
+    let items = [];            // [{origIndex, delta(추가 회전), thumb(dataURL)}]
+
+    const grid = document.getElementById('orgGrid');
+
+    function renderGrid() {
+        grid.innerHTML = '';
+        items.forEach((it, idx) => {
+            const el = document.createElement('div');
+            el.className = 'thumb-item';
+            el.draggable = true;
+            el.dataset.index = idx;
+            el.innerHTML = `
+                <div class="thumb-img-wrap"><img src="${it.thumb}" draggable="false"></div>
+                <div class="thumb-meta">
+                    <span class="thumb-num">${it.origIndex + 1}</span>
+                    <span class="thumb-actions">
+                        <button class="thumb-btn" data-act="rot" title="시계방향 회전">🔄</button>
+                        <button class="thumb-btn del" data-act="del" title="페이지 삭제">✕</button>
+                    </span>
+                </div>
+            `;
+            grid.appendChild(el);
+        });
+        document.getElementById('orgCount').textContent = `${items.length}페이지`;
+        document.getElementById('orgSaveBtn').disabled = items.length === 0;
+        // 회전 적용: 90°/270°일 때는 칸에 맞게 축소 배율도 함께 계산
+        requestAnimationFrame(() => {
+            grid.querySelectorAll('.thumb-item').forEach((el, idx) => {
+                const img = el.querySelector('img');
+                const wrap = el.querySelector('.thumb-img-wrap');
+                const delta = items[idx].delta;
+                if (delta % 180 !== 0) {
+                    const k = Math.min(1, wrap.clientHeight / img.clientWidth, wrap.clientWidth / img.clientHeight);
+                    img.style.transform = `rotate(${delta}deg) scale(${k.toFixed(3)})`;
+                } else {
+                    img.style.transform = `rotate(${delta}deg)`;
+                }
+            });
+        });
+    }
+
+    grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.thumb-btn');
+        if (!btn) return;
+        const item = e.target.closest('.thumb-item');
+        const idx = parseInt(item.dataset.index);
+        if (btn.dataset.act === 'rot') {
+            items[idx].delta = (items[idx].delta + 90) % 360;
+        } else if (btn.dataset.act === 'del') {
+            items.splice(idx, 1);
+        }
+        renderGrid();
+    });
+
+    grid.addEventListener('dragstart', (e) => {
+        const item = e.target.closest('.thumb-item');
+        if (!item) return;
+        grid.dataset.dragIdx = item.dataset.index;
+        item.classList.add('dragging');
+    });
+    grid.addEventListener('dragend', () => {
+        grid.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('dragging', 'dragover-target'));
+    });
+    grid.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const target = e.target.closest('.thumb-item');
+        grid.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('dragover-target'));
+        if (target && target.dataset.index !== grid.dataset.dragIdx) target.classList.add('dragover-target');
+    });
+    grid.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const target = e.target.closest('.thumb-item');
+        const dragIdx = parseInt(grid.dataset.dragIdx);
+        if (!target || isNaN(dragIdx)) return;
+        const dropIdx = parseInt(target.dataset.index);
+        if (dragIdx === dropIdx) return;
+        const moved = items.splice(dragIdx, 1)[0];
+        items.splice(dropIdx, 0, moved);
+        renderGrid();
+    });
+
+    async function loadPdf(file) {
+        hideError('orgError');
+        hideResult('orgResult');
+        showLoading('페이지 불러오는 중...');
+        try {
+            srcName = file.name;
+            const buf = await file.arrayBuffer();
+            srcBytes = buf.slice(0);  // pdf.js가 buffer를 가져가므로 복사본 보관
+            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+            items = [];
+            // 첫 페이지 방향에 맞춰 격자 모양 결정 (가로 문서 = 넓은 칸)
+            const firstPage = await pdf.getPage(1);
+            const firstVp = firstPage.getViewport({ scale: 1 });
+            grid.classList.toggle('landscape', firstVp.width > firstVp.height);
+            for (let i = 1; i <= pdf.numPages; i++) {
+                showLoading(`페이지 불러오는 중... (${i}/${pdf.numPages})`);
+                await tick();
+                const page = await pdf.getPage(i);
+                const vp1 = page.getViewport({ scale: 1 });
+                const scale = 220 / vp1.width;
+                const viewport = page.getViewport({ scale });
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(viewport.width);
+                canvas.height = Math.round(viewport.height);
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                items.push({ origIndex: i - 1, delta: 0, thumb: canvas.toDataURL('image/jpeg', 0.8) });
+            }
+            pdf.destroy();
+            renderGrid();
+            document.getElementById('orgToolbar').classList.add('active');
+        } catch (e) {
+            showError('orgError', 'PDF를 여는 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+        }
+    }
+
+    setupUploadZone('orgUploadZone', 'orgFileInput', {
+        onFiles(files) { loadPdf(files[0]); }
+    });
+
+    document.getElementById('orgResetBtn').addEventListener('click', async () => {
+        if (!srcBytes) return;
+        const file = new File([srcBytes], srcName, { type: 'application/pdf' });
+        await loadPdf(file);
+    });
+
+    document.getElementById('orgSaveBtn').addEventListener('click', async function () {
+        if (!srcBytes || items.length === 0) return;
+        hideError('orgError');
+        hideResult('orgResult');
+        this.disabled = true;
+        showLoading('저장하는 중...');
+        try {
+            const { PDFDocument, degrees } = PDFLib;
+            const src = await PDFDocument.load(srcBytes.slice(0), { ignoreEncryption: true });
+            const out = await PDFDocument.create();
+            const copied = await out.copyPages(src, items.map(it => it.origIndex));
+            copied.forEach((page, i) => {
+                const cur = page.getRotation().angle || 0;
+                page.setRotation(degrees((cur + items[i].delta) % 360));
+                out.addPage(page);
+            });
+            const bytes = await out.save();
+            downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${baseName(srcName)}_정리.pdf`);
+            showResult('orgResult', `${items.length}페이지로 저장했습니다.`);
+        } catch (e) {
+            showError('orgError', '저장 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+            this.disabled = false;
+        }
+    });
+})();
+
+// ===================================================================
+// 3. 워터마크 지우기 (노트북LM, PDF + PPTX)
+// ===================================================================
+(function () {
+    // 워터마크 박스 (페이지 크기 대비 비율, 1376x768 기준 측정값 + 여유)
+    const WM = { x0: 1262 / 1376, y0: 741 / 768, x1: 1372 / 1376, y1: 764 / 768 };
+    let file = null;
+
+    // 캔버스 우하단 워터마크 영역을 행별로 왼쪽 배경 중앙값으로 덮음
+    function patchCanvas(ctx, w, h) {
+        const x0 = Math.floor(WM.x0 * w), y0 = Math.floor(WM.y0 * h);
+        const x1 = Math.min(Math.ceil(WM.x1 * w), w), y1 = Math.min(Math.ceil(WM.y1 * h), h);
+        const sampleW = Math.max(10, Math.round(w * 0.022));
+        const gap = Math.max(4, Math.round(w * 0.007));
+        const sx = Math.max(0, x0 - sampleW - gap);
+        const region = ctx.getImageData(sx, y0, x1 - sx, y1 - y0);
+        const rw = region.width;
+        const fillStart = x0 - sx;
+        const m = Math.floor(sampleW / 2);
+        for (let row = 0; row < region.height; row++) {
+            const rs = [], gs = [], bs = [];
+            for (let i = 0; i < sampleW; i++) {
+                const p = (row * rw + i) * 4;
+                rs.push(region.data[p]); gs.push(region.data[p + 1]); bs.push(region.data[p + 2]);
+            }
+            rs.sort((a, b) => a - b); gs.sort((a, b) => a - b); bs.sort((a, b) => a - b);
+            for (let x = fillStart; x < rw; x++) {
+                const p = (row * rw + x) * 4;
+                region.data[p] = rs[m]; region.data[p + 1] = gs[m]; region.data[p + 2] = bs[m];
+                region.data[p + 3] = 255;
+            }
+        }
+        ctx.putImageData(region, sx, y0);
+    }
+
+    async function processPdf(file) {
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+        const { PDFDocument } = PDFLib;
+        const out = await PDFDocument.create();
+        for (let i = 1; i <= pdf.numPages; i++) {
+            showLoading(`워터마크 지우는 중... (${i}/${pdf.numPages})`);
+            await tick();
+            const page = await pdf.getPage(i);
+            const vp1 = page.getViewport({ scale: 1 });
+            // 노트북LM은 1376pt 폭(원본 해상도 1:1). 작은 페이지는 2배로 렌더해 화질 유지
+            const scale = vp1.width >= 1200 ? 1 : 2;
+            const viewport = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(viewport.width);
+            canvas.height = Math.round(viewport.height);
+            const ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            patchCanvas(ctx, canvas.width, canvas.height);
+            const blob = await canvasToBlob(canvas, 'image/png');
+            const img = await out.embedPng(await blob.arrayBuffer());
+            const p = out.addPage([vp1.width, vp1.height]);
+            p.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
+        }
+        pdf.destroy();
+        const bytes = await out.save();
+        downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${baseName(file.name)}_워터마크제거.pdf`);
+        return pdf.numPages;
+    }
+
+    function loadImage(blob) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(blob);
+            img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 읽을 수 없습니다.')); };
+            img.src = url;
+        });
+    }
+
+    async function processPptx(file) {
+        const zip = await JSZip.loadAsync(await file.arrayBuffer());
+        const mediaNames = Object.keys(zip.files).filter(n =>
+            n.startsWith('ppt/media/') && /\.(png|jpe?g)$/i.test(n));
+        let count = 0;
+        for (const name of mediaNames) {
+            count++;
+            showLoading(`워터마크 지우는 중... (${count}/${mediaNames.length})`);
+            await tick();
+            const blob = await zip.files[name].async('blob');
+            const img = await loadImage(blob);
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            patchCanvas(ctx, canvas.width, canvas.height);
+            const outBlob = await canvasToBlob(canvas, 'image/png');
+            zip.file(name, outBlob);
+        }
+        showLoading('PPTX 파일 만드는 중...');
+        const outBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+        downloadBlob(outBlob, `${baseName(file.name)}_워터마크제거.pptx`);
+        return count;
+    }
+
+    setupUploadZone('wmUploadZone', 'wmFileInput', {
+        pattern: /\.(pdf|pptx)$/i,
+        onFiles(files) {
+            hideError('wmError');
+            hideResult('wmResult');
+            file = files[0];
+            showSingleFile('wmFileList', file);
+            document.getElementById('wmBtn').disabled = false;
+        }
+    });
+
+    document.getElementById('wmBtn').addEventListener('click', async function () {
+        if (!file) return;
+        hideError('wmError');
+        hideResult('wmResult');
+        this.disabled = true;
+        showLoading('워터마크 지우는 중...');
+        try {
+            if (/\.pdf$/i.test(file.name)) {
+                const n = await processPdf(file);
+                showResult('wmResult', `${n}페이지 처리 완료. "_워터마크제거.pdf"로 저장됩니다.`);
+            } else {
+                const n = await processPptx(file);
+                showResult('wmResult', `슬라이드 이미지 ${n}장 처리 완료. "_워터마크제거.pptx"로 저장됩니다.`);
+            }
+        } catch (e) {
+            showError('wmError', '처리 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+            this.disabled = false;
+        }
+    });
+})();
+
+// ===================================================================
+// 4. 이미지 → PDF
+// ===================================================================
+(function () {
+    let entries = [];   // [{file, url}]
+    const grid = document.getElementById('i2pGrid');
+
+    function renderGrid() {
+        grid.innerHTML = '';
+        entries.forEach((it, idx) => {
+            const el = document.createElement('div');
+            el.className = 'thumb-item';
+            el.draggable = true;
+            el.dataset.index = idx;
+            el.title = it.file.name;
+            el.innerHTML = `
+                <div class="thumb-img-wrap"><img src="${it.url}" draggable="false"></div>
+                <div class="thumb-meta">
+                    <span class="thumb-num">${idx + 1} · ${formatFileSize(it.file.size)}</span>
+                    <span class="thumb-actions">
+                        <button class="thumb-btn del" data-act="del" title="빼기">✕</button>
+                    </span>
+                </div>
+            `;
+            grid.appendChild(el);
+        });
+        document.getElementById('i2pBtn').disabled = entries.length === 0;
+    }
+
+    grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.thumb-btn');
+        if (!btn) return;
+        const idx = parseInt(e.target.closest('.thumb-item').dataset.index);
+        URL.revokeObjectURL(entries[idx].url);
+        entries.splice(idx, 1);
+        renderGrid();
+    });
+    grid.addEventListener('dragstart', (e) => {
+        const item = e.target.closest('.thumb-item');
+        if (!item) return;
+        grid.dataset.dragIdx = item.dataset.index;
+        item.classList.add('dragging');
+    });
+    grid.addEventListener('dragend', () => {
+        grid.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('dragging', 'dragover-target'));
+    });
+    grid.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const target = e.target.closest('.thumb-item');
+        grid.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('dragover-target'));
+        if (target && target.dataset.index !== grid.dataset.dragIdx) target.classList.add('dragover-target');
+    });
+    grid.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const target = e.target.closest('.thumb-item');
+        const dragIdx = parseInt(grid.dataset.dragIdx);
+        if (!target || isNaN(dragIdx)) return;
+        const dropIdx = parseInt(target.dataset.index);
+        if (dragIdx === dropIdx) return;
+        const moved = entries.splice(dragIdx, 1)[0];
+        entries.splice(dropIdx, 0, moved);
+        renderGrid();
+    });
+
+    setupUploadZone('i2pUploadZone', 'i2pFileInput', {
+        multiple: true,
+        pattern: /\.(png|jpe?g|webp|gif|bmp)$/i,
+        onFiles(newFiles) {
+            hideError('i2pError');
+            hideResult('i2pResult');
+            entries = entries.concat(newFiles.map(f => ({ file: f, url: URL.createObjectURL(f) })));
+            renderGrid();
+        }
+    });
+
+    async function fileToEmbeddable(doc, file) {
+        const bytes = await file.arrayBuffer();
+        if (/\.png$/i.test(file.name)) return doc.embedPng(bytes);
+        if (/\.jpe?g$/i.test(file.name)) return doc.embedJpg(bytes);
+        // 그 외 포맷은 캔버스로 PNG 변환 후 삽입
+        const img = await createImageBitmap(new Blob([bytes]));
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        const blob = await canvasToBlob(canvas, 'image/png');
+        return doc.embedPng(await blob.arrayBuffer());
+    }
+
+    document.getElementById('i2pBtn').addEventListener('click', async function () {
+        if (entries.length === 0) return;
+        hideError('i2pError');
+        hideResult('i2pResult');
+        this.disabled = true;
+        showLoading('PDF로 묶는 중...');
+        try {
+            const { PDFDocument } = PDFLib;
+            const doc = await PDFDocument.create();
+            for (let i = 0; i < entries.length; i++) {
+                showLoading(`PDF로 묶는 중... (${i + 1}/${entries.length})`);
+                await tick();
+                const img = await fileToEmbeddable(doc, entries[i].file);
+                const page = doc.addPage([img.width, img.height]);
+                page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+            }
+            const bytes = await doc.save();
+            const name = entries.length === 1 ? `${baseName(entries[0].file.name)}.pdf` : '이미지묶음.pdf';
+            downloadBlob(new Blob([bytes], { type: 'application/pdf' }), name);
+            showResult('i2pResult', `이미지 ${entries.length}장을 PDF로 묶었습니다.`);
+        } catch (e) {
+            showError('i2pError', '변환 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+            this.disabled = false;
+        }
+    });
+})();
+
+// ===================================================================
+// 5. PDF → 이미지
+// ===================================================================
+(function () {
+    let file = null;
+
+    setupUploadZone('p2iUploadZone', 'p2iFileInput', {
+        onFiles(files) {
+            hideError('p2iError');
+            hideResult('p2iResult');
+            file = files[0];
+            showSingleFile('p2iFileList', file);
+            document.getElementById('p2iOptionsArea').style.display = 'block';
+        }
+    });
+
+    document.getElementById('p2iBtn').addEventListener('click', async function () {
+        if (!file) return;
+        hideError('p2iError');
+        hideResult('p2iResult');
+        this.disabled = true;
+        showLoading('이미지로 변환 중...');
+        try {
+            const scale = parseFloat(document.getElementById('p2iScale').value) * 1.5;
+            const format = document.getElementById('p2iFormat').value;
+            const mime = format === 'png' ? 'image/png' : 'image/jpeg';
+            const ext = format === 'png' ? 'png' : 'jpg';
+            const buf = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+            const base = baseName(file.name);
+            const pad = String(pdf.numPages).length;
+
+            if (pdf.numPages === 1) {
+                const { canvas } = await renderPdfPage(pdf, 1, scale);
+                const blob = await canvasToBlob(canvas, mime, 0.92);
+                downloadBlob(blob, `${base}.${ext}`);
+            } else {
+                const zip = new JSZip();
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    showLoading(`이미지 변환 중... (${i}/${pdf.numPages})`);
+                    await tick();
+                    const { canvas } = await renderPdfPage(pdf, i, scale);
+                    const blob = await canvasToBlob(canvas, mime, 0.92);
+                    zip.file(`${base}_${String(i).padStart(pad, '0')}.${ext}`, blob);
+                }
+                showLoading('ZIP 파일 만드는 중...');
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                downloadBlob(zipBlob, `${base}_이미지.zip`);
+            }
+            showResult('p2iResult', `${pdf.numPages}페이지를 변환했습니다.${pdf.numPages > 1 ? ' ZIP으로 저장됩니다.' : ''}`);
+            pdf.destroy();
+        } catch (e) {
+            showError('p2iError', '변환 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+            this.disabled = false;
+        }
+    });
+})();
+
+// ===================================================================
+// 6. PDF → PPT
+// ===================================================================
+(function () {
+    let file = null;
+
+    setupUploadZone('p2pUploadZone', 'p2pFileInput', {
+        onFiles(files) {
+            hideError('p2pError');
+            hideResult('p2pResult');
+            file = files[0];
+            showSingleFile('p2pFileList', file);
+            document.getElementById('p2pOptionsArea').style.display = 'block';
+        }
+    });
+
+    document.getElementById('p2pBtn').addEventListener('click', async function () {
+        if (!file) return;
+        hideError('p2pError');
+        hideResult('p2pResult');
+        this.disabled = true;
+        showLoading('PPT로 변환 중...');
+        try {
+            const scale = parseFloat(document.getElementById('p2pScale').value) * 1.5;
+            const buf = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+
+            // 첫 페이지 비율로 슬라이드 크기를 한 번만 정의
+            const first = await pdf.getPage(1);
+            const vp1 = first.getViewport({ scale: 1 });
+            const wIn = vp1.width / 72;
+            const hIn = vp1.height / 72;
+
+            const pptx = new PptxGenJS();
+            pptx.defineLayout({ name: 'PDF', width: wIn, height: hIn });
+            pptx.layout = 'PDF';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                showLoading(`PPT 변환 중... (${i}/${pdf.numPages})`);
+                await tick();
+                const { canvas } = await renderPdfPage(pdf, i, scale);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                const slide = pptx.addSlide();
+                slide.addImage({ data: dataUrl, x: 0, y: 0, w: wIn, h: hIn });
+            }
+            showLoading('PPT 파일 만드는 중...');
+            const blob = await pptx.write({ outputType: 'blob' });
+            downloadBlob(blob, `${baseName(file.name)}.pptx`);
+            showResult('p2pResult', `${pdf.numPages}페이지를 슬라이드로 변환했습니다.`);
+            pdf.destroy();
+        } catch (e) {
+            showError('p2pError', '변환 중 오류: ' + (e.message || e));
+        } finally {
+            hideLoading();
+            this.disabled = false;
+        }
+    });
+})();
+
+</script>
+</body>
+</html>
