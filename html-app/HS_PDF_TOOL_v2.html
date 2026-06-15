@@ -9,21 +9,23 @@
 :root {
     --color-primary: #f97316;
     --color-primary-hover: #ea580c;
-    --color-bg: #f5f5f4;
+    --color-bg: #faf7ef;
     --color-text: #1c1917;
     --color-text-secondary: #78716c;
     --color-border: rgba(0, 0, 0, 0.06);
-    --color-success: #16a34a;
+    --color-success: #0f9f6e;
+    --color-success-bg: #eaf8f1;
+    --color-warning: #b45309;
+    --color-warning-bg: #fff7e8;
     --color-error: #dc2626;
     --color-error-bg: #fef2f2;
-    --glass-bg: rgba(255, 255, 255, 0.55);
-    --glass-border: rgba(255, 255, 255, 0.7);
-    --glass-blur: 16px;
+    --glass-bg: #ffffff;
+    --glass-border: #e7e5e1;
     --radius: 16px;
     --radius-sm: 10px;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.07);
+    --transition: 0.16s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,7 +59,7 @@ body::after {
 
 /* ===== Navbar ===== */
 .navbar {
-    background: rgba(245, 245, 244, 0.6);
+    background: rgba(250, 247, 239, 0.65);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -82,6 +84,21 @@ body::after {
 }
 .nav-back:hover { background: rgba(0,0,0,0.05); color: var(--color-text); }
 .nav-back.visible { display: flex; }
+.nav-mark {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: var(--color-primary);
+    display: inline-block; vertical-align: -5px; margin-right: 4px;
+}
+.nav-badge {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; color: var(--color-text-secondary);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--color-border);
+    border-radius: 20px; padding: 5px 12px;
+    white-space: nowrap;
+}
+.nav-badge svg { width: 13px; height: 13px; color: var(--color-primary); flex-shrink: 0; }
 
 .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; position: relative; z-index: 1; }
 
@@ -90,28 +107,43 @@ body::after {
 .hero-desc { color: var(--color-text-secondary); font-size: 15px; }
 
 /* ===== Card Grid ===== */
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+/* 2칸 대표 카드 (가장 많이 쓰는 기능): 가로형 — 아이콘 왼쪽 + 텍스트 */
+.card.wide {
+    grid-column: span 2;
+    display: flex; align-items: center; gap: 20px;
+    text-align: left;
+}
+.card.wide .card-icon { margin: 0; width: 56px; height: 56px; flex-shrink: 0; }
+.card.wide .card-icon svg { width: 28px; height: 28px; }
+.card.wide h3 { font-size: 18px; }
 .card {
     background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    padding: 24px;
+    padding: 28px 24px;
     text-decoration: none;
     color: var(--color-text);
     transition: all var(--transition);
     cursor: pointer;
     box-shadow: var(--shadow);
     position: relative;
+    text-align: center;
 }
 .card:hover {
-    background: rgba(255, 255, 255, 0.7);
-    border-color: rgba(249, 115, 22, 0.5);
+    border-color: #f6c4a3;
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md), 0 0 0 2px rgba(249, 115, 22, 0.15);
+    box-shadow: var(--shadow-md);
 }
-.card-icon { font-size: 28px; margin-bottom: 14px; }
+.card-icon {
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff1e8;
+    border-radius: 12px;
+    color: var(--color-primary);
+    margin: 0 auto 14px;
+}
+.card-icon svg { width: 24px; height: 24px; }
 .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.01em; }
 .card p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; }
 .card.soon { cursor: default; opacity: 0.55; }
@@ -135,14 +167,20 @@ body::after {
     cursor: pointer;
     transition: all var(--transition);
     background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .upload-zone:hover, .upload-zone.dragover {
     border-color: var(--color-primary);
     background: rgba(249, 115, 22, 0.04);
 }
-.upload-zone-icon { font-size: 40px; margin-bottom: 12px; }
+.upload-zone-icon {
+    width: 52px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(249, 115, 22, 0.1);
+    border-radius: 14px;
+    color: var(--color-primary);
+    margin: 0 auto 14px;
+}
+.upload-zone-icon svg { width: 26px; height: 26px; }
 .upload-zone-text { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
 .upload-zone-hint { font-size: 13px; color: var(--color-text-secondary); }
 .upload-zone input[type="file"] { display: none; }
@@ -159,7 +197,7 @@ body::after {
     cursor: grab;
     transition: background var(--transition);
 }
-.file-item:hover { background: rgba(255, 255, 255, 0.75); }
+.file-item:hover { background: #fafaf9; }
 .file-item.dragging { opacity: 0.5; }
 .file-item-name {
     font-size: 14px; font-weight: 500;
@@ -181,8 +219,6 @@ body::after {
     border-radius: var(--radius);
     padding: 20px 24px;
     margin-top: 16px;
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .options-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
 .options-group select, .options-group input[type="text"], .options-group input[type="number"] {
@@ -221,15 +257,23 @@ body::after {
 .result-area { margin-top: 24px; display: none; }
 .result-area.active { display: block; }
 .result-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--color-success-bg);
+    border: 1px solid #c2e7d6;
     border-radius: var(--radius);
     padding: 20px 24px;
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
 }
-.result-info { font-size: 14px; color: var(--color-text-secondary); }
-.result-info strong { color: var(--color-text); }
+.result-info { font-size: 14px; color: #0b6e4d; }
+.result-info strong { color: #0b6e4d; }
+.result-info::before { content: '✓ '; font-weight: 700; color: var(--color-success); }
+.warn-note {
+    background: var(--color-warning-bg);
+    border: 1px solid #f3ddb3;
+    border-radius: var(--radius-sm);
+    color: var(--color-warning);
+    font-size: 13px; font-weight: 500;
+    padding: 10px 16px;
+    margin-top: 12px;
+}
 .error-msg {
     background: var(--color-error-bg);
     color: var(--color-error);
@@ -246,7 +290,7 @@ body::after {
 .loading-overlay {
     display: none;
     position: fixed; inset: 0;
-    background: rgba(245, 245, 244, 0.7);
+    background: rgba(250, 247, 239, 0.75);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     z-index: 200;
@@ -299,7 +343,7 @@ body::after {
 .thumb-img-wrap {
     display: flex; align-items: center; justify-content: center;
     height: 200px; overflow: hidden;
-    background: rgba(255,255,255,0.6);
+    background: #f6f5f1;
     border-radius: 6px;
 }
 .thumb-img-wrap img {
@@ -332,8 +376,6 @@ body::after {
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 12px 16px;
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .editor-hint { font-size: 13px; color: var(--color-text-secondary); margin-top: 10px; }
 .page-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin-left: auto; }
@@ -416,6 +458,7 @@ body::after {
 
 @media (max-width: 600px) {
     .container { padding: 20px 16px; }
+    .nav-badge { display: none; }
     .card-grid { grid-template-columns: 1fr 1fr; }
     .hero h1 { font-size: 24px; }
     .upload-zone { padding: 32px 16px; }
@@ -428,8 +471,12 @@ body::after {
 <body>
 
 <nav class="navbar">
-    <a class="nav-logo" onclick="navigateTo('')">H.W. PDF TOOL <span style="color:var(--color-primary)">v2</span></a>
+    <a class="nav-logo" onclick="navigateTo('')"><span class="nav-mark"></span> H.W. PDF TOOL <span style="color:var(--color-primary)">v2</span></a>
     <button class="nav-back" id="navBack" onclick="navigateTo('')">← 홈으로</button>
+    <span class="nav-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        파일은 외부로 전송되지 않습니다
+    </span>
 </nav>
 
 <div class="loading-overlay" id="loadingOverlay">
@@ -442,47 +489,49 @@ body::after {
 <!-- ===== HOME ===== -->
 <section class="page-section active" id="page-home">
     <div class="hero">
-        <h1>H.W. PDF TOOL</h1>
+        <h1><span style="color:var(--color-primary)">H.W.</span> PDF TOOL</h1>
         <p class="hero-desc">모든 작업이 이 PC 안에서만 처리됩니다 · 인터넷 불필요</p>
     </div>
     <div class="card-grid">
+        <a class="card wide" onclick="navigateTo('watermark')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg></div>
+            <div>
+                <h3>워터마크 지우기</h3>
+                <p>노트북LM 로고를 흔적 없이 (PDF · PPTX)</p>
+            </div>
+        </a>
         <a class="card" onclick="navigateTo('merge')">
-            <div class="card-icon">📎</div>
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 4H6a2 2 0 0 0-2 2v10"/></svg></div>
             <h3>PDF 합치기</h3>
             <p>여러 PDF를 하나로</p>
         </a>
         <a class="card" onclick="navigateTo('organize')">
-            <div class="card-icon">🗂️</div>
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
             <h3>페이지 정리</h3>
             <p>페이지를 보면서 삭제 · 순서변경 · 회전 · 뽑아내기</p>
         </a>
-        <a class="card" onclick="navigateTo('watermark')">
-            <div class="card-icon">🧽</div>
-            <h3>워터마크 지우기</h3>
-            <p>노트북LM 로고를 흔적 없이 (PDF · PPTX)</p>
-        </a>
         <a class="card" onclick="navigateTo('image-to-pdf')">
-            <div class="card-icon">🖼️</div>
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></div>
             <h3>이미지 → PDF</h3>
             <p>사진 · 이미지를 PDF로 묶기</p>
         </a>
         <a class="card" onclick="navigateTo('pdf-to-image')">
-            <div class="card-icon">📷</div>
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>
             <h3>PDF → 이미지</h3>
             <p>페이지를 그림 파일로</p>
         </a>
         <a class="card" onclick="navigateTo('pdf-to-ppt')">
-            <div class="card-icon">📊</div>
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg></div>
             <h3>PDF → PPT</h3>
             <p>페이지를 슬라이드로</p>
         </a>
         <a class="card" onclick="navigateTo('redact')">
-            <div class="card-icon">🩹</div>
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg></div>
             <h3>박스로 가리기</h3>
             <p>보이면 안 되는 부분을 덮어서 저장</p>
         </a>
         <a class="card" onclick="navigateTo('stamp')">
-            <div class="card-icon">✍️</div>
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
             <h3>글자·이미지 넣기</h3>
             <p>도장, 사인, 연락처를 원하는 자리에</p>
         </a>
@@ -496,7 +545,7 @@ body::after {
         <p>여러 PDF 파일을 하나로 합칩니다. 드래그로 순서를 바꿀 수 있습니다.</p>
     </div>
     <div class="upload-zone" id="mergeUploadZone">
-        <div class="upload-zone-icon">📎</div>
+        <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
         <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-zone-hint">여러 파일 선택 가능</div>
         <input type="file" id="mergeFileInput" accept=".pdf" multiple>
@@ -518,7 +567,7 @@ body::after {
         <p>페이지를 눈으로 보면서 삭제하고, 드래그로 순서를 바꾸고, 회전할 수 있습니다.</p>
     </div>
     <div class="upload-zone" id="orgUploadZone">
-        <div class="upload-zone-icon">🗂️</div>
+        <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
         <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-zone-hint">불러온 뒤 각 페이지에서 🔄 회전 · ✕ 삭제</div>
         <input type="file" id="orgFileInput" accept=".pdf">
@@ -542,7 +591,7 @@ body::after {
         <p>노트북LM이 만든 PDF · PPTX 우하단의 NotebookLM 로고를 주변 배경색으로 자연스럽게 덮습니다.</p>
     </div>
     <div class="upload-zone" id="wmUploadZone">
-        <div class="upload-zone-icon">🧽</div>
+        <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
         <div class="upload-zone-text">PDF 또는 PPTX 파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-zone-hint">노트북LM에서 다운로드한 파일</div>
         <input type="file" id="wmFileInput" accept=".pdf,.pptx">
@@ -564,7 +613,7 @@ body::after {
         <p>사진과 이미지를 한 장씩 페이지로 넣어 PDF 한 개로 묶습니다. 드래그로 순서를 바꿀 수 있습니다.</p>
     </div>
     <div class="upload-zone" id="i2pUploadZone">
-        <div class="upload-zone-icon">🖼️</div>
+        <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
         <div class="upload-zone-text">이미지 파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-zone-hint">JPG · PNG · WEBP, 여러 장 선택 가능</div>
         <input type="file" id="i2pFileInput" accept="image/*" multiple>
@@ -586,7 +635,7 @@ body::after {
         <p>PDF 페이지를 그림 파일로 변환합니다. 여러 장이면 ZIP으로 묶어 내려받습니다.</p>
     </div>
     <div class="upload-zone" id="p2iUploadZone">
-        <div class="upload-zone-icon">📷</div>
+        <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
         <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-zone-hint"></div>
         <input type="file" id="p2iFileInput" accept=".pdf">
@@ -629,7 +678,7 @@ body::after {
         <p>PDF 각 페이지를 슬라이드 한 장으로 만들어 파워포인트 파일로 변환합니다.</p>
     </div>
     <div class="upload-zone" id="p2pUploadZone">
-        <div class="upload-zone-icon">📊</div>
+        <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
         <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-zone-hint"></div>
         <input type="file" id="p2pFileInput" accept=".pdf">
@@ -661,7 +710,7 @@ body::after {
         <p>마우스로 드래그한 영역을 색 박스로 덮습니다. 저장하면 가린 페이지는 이미지로 바뀌어 <strong>원래 내용을 복구할 수 없습니다.</strong></p>
     </div>
     <div class="upload-zone" id="redUploadZone">
-        <div class="upload-zone-icon">🩹</div>
+        <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
         <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-zone-hint"></div>
         <input type="file" id="redFileInput" accept=".pdf">
@@ -687,6 +736,7 @@ body::after {
             </div>
         </div>
         <div class="editor-hint" id="redHint">가릴 부분을 마우스로 드래그하세요. 박스 우상단 ✕로 지울 수 있습니다.</div>
+        <div class="warn-note">가린 부분은 저장 후 복구할 수 없습니다. 원본 파일은 그대로 남고 새 파일로 저장됩니다.</div>
         <div class="viewer-wrap">
             <div class="viewer-stage">
                 <canvas id="redCanvas"></canvas>
@@ -707,7 +757,7 @@ body::after {
         <p>글자(이름·연락처 등)나 이미지(도장·사인)를 원하는 자리에 올려놓고 저장합니다.</p>
     </div>
     <div class="upload-zone" id="stampUploadZone">
-        <div class="upload-zone-icon">✍️</div>
+        <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
         <div class="upload-zone-text">PDF 파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-zone-hint"></div>
         <input type="file" id="stampFileInput" accept=".pdf">
@@ -737,8 +787,9 @@ body::after {
             <span class="fav-label">자주 쓰는 항목:</span>
             <span id="stampFavList"></span>
             <button class="btn btn-ghost" id="stampFavSaveBtn" style="padding:4px 12px; font-size:13px;" disabled>☆ 선택한 항목 저장</button>
+            <button class="btn btn-ghost" id="stampAllPagesBtn" style="padding:4px 12px; font-size:13px;" disabled>📄 선택한 항목을 모든 페이지에</button>
         </div>
-        <div class="editor-hint">올린 항목은 드래그로 이동, 모서리 ⬤로 크기 조절, 선택 후 ✕로 삭제할 수 있습니다.</div>
+        <div class="editor-hint" id="stampHint">올린 항목은 드래그로 이동, 모서리 ⬤로 크기 조절, 선택 후 ✕로 삭제할 수 있습니다.</div>
         <div class="viewer-wrap">
             <div class="viewer-stage">
                 <canvas id="stampCanvas"></canvas>
@@ -867,6 +918,31 @@ function downloadBlob(blob, filename) {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+// 저장 위치 선택 (크롬 등 지원 브라우저). 클릭 직후 권한이 살아있을 때,
+// 즉 변환 "시작 전"에 호출해야 한다. 미지원/권한만료 시 일반 다운로드로 폴백.
+async function pickSaveTarget(suggestedName) {
+    if (!window.showSaveFilePicker) return { mode: 'download' };
+    try {
+        const handle = await window.showSaveFilePicker({ suggestedName });
+        return { mode: 'picker', handle };
+    } catch (e) {
+        if (e && e.name === 'AbortError') return { mode: 'cancel' };  // 사용자가 창을 닫음
+        return { mode: 'download' };
+    }
+}
+
+// pickSaveTarget 결과에 blob을 저장. 실제 저장된 파일명을 돌려준다.
+async function saveBlob(target, blob, filename) {
+    if (target && target.mode === 'picker') {
+        const writable = await target.handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return target.handle.name;
+    }
+    downloadBlob(blob, filename);
+    return filename;
 }
 
 function baseName(filename) {
@@ -1006,13 +1082,38 @@ function showSingleFile(containerId, file) {
 // ===== SPA Router =====
 const pages = ['home', 'merge', 'organize', 'watermark', 'image-to-pdf', 'pdf-to-image', 'pdf-to-ppt', 'redact', 'stamp'];
 
+// ----- 편집 중 이탈 경고 -----
+// 각 작업 화면이 "저장 안 한 작업 있음" 판별 함수를 등록해 두면,
+// 화면 이동(해시 변경)·창 닫기 때 확인 창을 띄운다.
+const dirtyCheckers = {};   // page -> () => boolean
+function registerDirtyCheck(page, fn) { dirtyCheckers[page] = fn; }
+
+window.addEventListener('beforeunload', (e) => {
+    if (Object.values(dirtyCheckers).some(fn => fn())) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
 function navigateTo(page) {
     window.location.hash = page ? '#' + page : '';
 }
 
+let currentPage = 'home';
+let revertingHash = false;   // 이탈 취소로 해시를 되돌리는 중 (확인 창 재출현 방지)
+
 function handleRoute() {
     let hash = window.location.hash.replace('#', '') || 'home';
     if (!pages.includes(hash)) hash = 'home';
+    if (revertingHash) { revertingHash = false; return; }
+    if (hash !== currentPage && dirtyCheckers[currentPage] && dirtyCheckers[currentPage]()) {
+        if (!confirm('저장하지 않은 작업이 있습니다.\n그래도 나가시겠습니까?')) {
+            revertingHash = true;
+            window.location.hash = currentPage === 'home' ? '' : currentPage;
+            return;
+        }
+    }
+    currentPage = hash;
     pages.forEach(p => {
         const el = document.getElementById('page-' + p);
         if (el) el.classList.toggle('active', p === hash);
@@ -1063,6 +1164,8 @@ function canvasToBlob(canvas, type, quality) {
         hideError('mergeError');
         hideResult('mergeResult');
         this.disabled = true;
+        const target = await pickSaveTarget('합친파일.pdf');
+        if (target.mode === 'cancel') { this.disabled = false; return; }
         showLoading('PDF 합치는 중...');
         try {
             const { PDFDocument } = PDFLib;
@@ -1076,8 +1179,8 @@ function canvasToBlob(canvas, type, quality) {
                 copied.forEach(p => merged.addPage(p));
             }
             const out = await merged.save();
-            downloadBlob(new Blob([out], { type: 'application/pdf' }), '합친파일.pdf');
-            showResult('mergeResult', `${files.length}개 파일을 합쳤습니다. "합친파일.pdf"로 저장됩니다.`);
+            const savedName = await saveBlob(target, new Blob([out], { type: 'application/pdf' }), '합친파일.pdf');
+            showResult('mergeResult', `${files.length}개 파일을 합쳤습니다. "${savedName}"로 저장했습니다.`);
         } catch (e) {
             showError('mergeError', '합치는 중 오류: ' + (e.message || e));
         } finally {
@@ -1094,6 +1197,9 @@ function canvasToBlob(canvas, type, quality) {
     let srcBytes = null;       // 원본 PDF bytes (pdf-lib용 복사본)
     let srcName = '';
     let items = [];            // [{origIndex, delta(추가 회전), thumb(dataURL)}]
+    let unsaved = false;       // 불러온 뒤 저장 안 한 편집이 있는지
+
+    registerDirtyCheck('organize', () => unsaved);
 
     const grid = document.getElementById('orgGrid');
 
@@ -1144,6 +1250,7 @@ function canvasToBlob(canvas, type, quality) {
         } else if (btn.dataset.act === 'del') {
             items.splice(idx, 1);
         }
+        unsaved = true;
         renderGrid();
     });
 
@@ -1171,6 +1278,7 @@ function canvasToBlob(canvas, type, quality) {
         if (dragIdx === dropIdx) return;
         const moved = items.splice(dragIdx, 1)[0];
         items.splice(dropIdx, 0, moved);
+        unsaved = true;
         renderGrid();
     });
 
@@ -1202,6 +1310,7 @@ function canvasToBlob(canvas, type, quality) {
                 items.push({ origIndex: i - 1, delta: 0, thumb: canvas.toDataURL('image/jpeg', 0.8) });
             }
             pdf.destroy();
+            unsaved = false;
             renderGrid();
             document.getElementById('orgToolbar').classList.add('active');
         } catch (e) {
@@ -1226,6 +1335,9 @@ function canvasToBlob(canvas, type, quality) {
         hideError('orgError');
         hideResult('orgResult');
         this.disabled = true;
+        const outName = `${baseName(srcName)}_정리.pdf`;
+        const target = await pickSaveTarget(outName);
+        if (target.mode === 'cancel') { this.disabled = false; return; }
         showLoading('저장하는 중...');
         try {
             const { PDFDocument, degrees } = PDFLib;
@@ -1238,8 +1350,9 @@ function canvasToBlob(canvas, type, quality) {
                 out.addPage(page);
             });
             const bytes = await out.save();
-            downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${baseName(srcName)}_정리.pdf`);
-            showResult('orgResult', `${items.length}페이지로 저장했습니다.`);
+            const savedName = await saveBlob(target, new Blob([bytes], { type: 'application/pdf' }), outName);
+            unsaved = false;
+            showResult('orgResult', `${items.length}페이지를 "${savedName}"로 저장했습니다.`);
         } catch (e) {
             showError('orgError', '저장 중 오류: ' + (e.message || e));
         } finally {
@@ -1284,7 +1397,7 @@ function canvasToBlob(canvas, type, quality) {
         ctx.putImageData(region, sx, y0);
     }
 
-    async function processPdf(file) {
+    async function processPdf(file, target, outName) {
         const buf = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
         const { PDFDocument } = PDFLib;
@@ -1308,10 +1421,11 @@ function canvasToBlob(canvas, type, quality) {
             const p = out.addPage([vp1.width, vp1.height]);
             p.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
         }
+        const numPages = pdf.numPages;
         pdf.destroy();
         const bytes = await out.save();
-        downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${baseName(file.name)}_워터마크제거.pdf`);
-        return pdf.numPages;
+        await saveBlob(target, new Blob([bytes], { type: 'application/pdf' }), outName);
+        return numPages;
     }
 
     function loadImage(blob) {
@@ -1324,7 +1438,7 @@ function canvasToBlob(canvas, type, quality) {
         });
     }
 
-    async function processPptx(file) {
+    async function processPptx(file, target, outName) {
         const zip = await JSZip.loadAsync(await file.arrayBuffer());
         const mediaNames = Object.keys(zip.files).filter(n =>
             n.startsWith('ppt/media/') && /\.(png|jpe?g)$/i.test(n));
@@ -1346,7 +1460,7 @@ function canvasToBlob(canvas, type, quality) {
         }
         showLoading('PPTX 파일 만드는 중...');
         const outBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-        downloadBlob(outBlob, `${baseName(file.name)}_워터마크제거.pptx`);
+        await saveBlob(target, outBlob, outName);
         return count;
     }
 
@@ -1366,14 +1480,18 @@ function canvasToBlob(canvas, type, quality) {
         hideError('wmError');
         hideResult('wmResult');
         this.disabled = true;
+        const isPdf = /\.pdf$/i.test(file.name);
+        const outName = `${baseName(file.name)}_워터마크제거.${isPdf ? 'pdf' : 'pptx'}`;
+        const target = await pickSaveTarget(outName);
+        if (target.mode === 'cancel') { this.disabled = false; return; }
         showLoading('워터마크 지우는 중...');
         try {
-            if (/\.pdf$/i.test(file.name)) {
-                const n = await processPdf(file);
-                showResult('wmResult', `${n}페이지 처리 완료. "_워터마크제거.pdf"로 저장됩니다.`);
+            if (isPdf) {
+                const n = await processPdf(file, target, outName);
+                showResult('wmResult', `${n}페이지 처리 완료. "${outName}"로 저장했습니다.`);
             } else {
-                const n = await processPptx(file);
-                showResult('wmResult', `슬라이드 이미지 ${n}장 처리 완료. "_워터마크제거.pptx"로 저장됩니다.`);
+                const n = await processPptx(file, target, outName);
+                showResult('wmResult', `슬라이드 이미지 ${n}장 처리 완료. "${outName}"로 저장했습니다.`);
             }
         } catch (e) {
             showError('wmError', '처리 중 오류: ' + (e.message || e));
@@ -1478,6 +1596,9 @@ function canvasToBlob(canvas, type, quality) {
         hideError('i2pError');
         hideResult('i2pResult');
         this.disabled = true;
+        const outName = entries.length === 1 ? `${baseName(entries[0].file.name)}.pdf` : '이미지묶음.pdf';
+        const target = await pickSaveTarget(outName);
+        if (target.mode === 'cancel') { this.disabled = false; return; }
         showLoading('PDF로 묶는 중...');
         try {
             const { PDFDocument } = PDFLib;
@@ -1490,9 +1611,8 @@ function canvasToBlob(canvas, type, quality) {
                 page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
             }
             const bytes = await doc.save();
-            const name = entries.length === 1 ? `${baseName(entries[0].file.name)}.pdf` : '이미지묶음.pdf';
-            downloadBlob(new Blob([bytes], { type: 'application/pdf' }), name);
-            showResult('i2pResult', `이미지 ${entries.length}장을 PDF로 묶었습니다.`);
+            const savedName = await saveBlob(target, new Blob([bytes], { type: 'application/pdf' }), outName);
+            showResult('i2pResult', `이미지 ${entries.length}장을 "${savedName}"로 묶었습니다.`);
         } catch (e) {
             showError('i2pError', '변환 중 오류: ' + (e.message || e));
         } finally {
@@ -1523,7 +1643,6 @@ function canvasToBlob(canvas, type, quality) {
         hideError('p2iError');
         hideResult('p2iResult');
         this.disabled = true;
-        showLoading('이미지로 변환 중...');
         try {
             const scale = parseFloat(document.getElementById('p2iScale').value) * 1.5;
             const format = document.getElementById('p2iFormat').value;
@@ -1533,11 +1652,16 @@ function canvasToBlob(canvas, type, quality) {
             const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
             const base = baseName(file.name);
             const pad = String(pdf.numPages).length;
+            // 1페이지 = 그림 파일, 여러 페이지 = ZIP — 이름이 갈리므로 여기서 저장 위치 선택
+            const outName = pdf.numPages === 1 ? `${base}.${ext}` : `${base}_이미지.zip`;
+            const target = await pickSaveTarget(outName);
+            if (target.mode === 'cancel') { pdf.destroy(); return; }
+            showLoading('이미지로 변환 중...');
 
             if (pdf.numPages === 1) {
                 const { canvas } = await renderPdfPage(pdf, 1, scale);
                 const blob = await canvasToBlob(canvas, mime, 0.92);
-                downloadBlob(blob, `${base}.${ext}`);
+                await saveBlob(target, blob, outName);
             } else {
                 const zip = new JSZip();
                 for (let i = 1; i <= pdf.numPages; i++) {
@@ -1549,9 +1673,9 @@ function canvasToBlob(canvas, type, quality) {
                 }
                 showLoading('ZIP 파일 만드는 중...');
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
-                downloadBlob(zipBlob, `${base}_이미지.zip`);
+                await saveBlob(target, zipBlob, outName);
             }
-            showResult('p2iResult', `${pdf.numPages}페이지를 변환했습니다.${pdf.numPages > 1 ? ' ZIP으로 저장됩니다.' : ''}`);
+            showResult('p2iResult', `${pdf.numPages}페이지를 변환했습니다.${pdf.numPages > 1 ? ' ZIP으로 저장했습니다.' : ''}`);
             pdf.destroy();
         } catch (e) {
             showError('p2iError', '변환 중 오류: ' + (e.message || e));
@@ -1583,6 +1707,9 @@ function canvasToBlob(canvas, type, quality) {
         hideError('p2pError');
         hideResult('p2pResult');
         this.disabled = true;
+        const outName = `${baseName(file.name)}.pptx`;
+        const target = await pickSaveTarget(outName);
+        if (target.mode === 'cancel') { this.disabled = false; return; }
         showLoading('PPT로 변환 중...');
         try {
             const scale = parseFloat(document.getElementById('p2pScale').value) * 1.5;
@@ -1609,8 +1736,8 @@ function canvasToBlob(canvas, type, quality) {
             }
             showLoading('PPT 파일 만드는 중...');
             const blob = await pptx.write({ outputType: 'blob' });
-            downloadBlob(blob, `${baseName(file.name)}.pptx`);
-            showResult('p2pResult', `${pdf.numPages}페이지를 슬라이드로 변환했습니다.`);
+            const savedName = await saveBlob(target, blob, outName);
+            showResult('p2pResult', `${pdf.numPages}페이지를 슬라이드로 변환해 "${savedName}"로 저장했습니다.`);
             pdf.destroy();
         } catch (e) {
             showError('p2pError', '변환 중 오류: ' + (e.message || e));
@@ -1722,6 +1849,10 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
 (function () {
     let boxes = {};   // pageIndex -> [{x0,y0,x1,y1,color}] (비율 좌표)
     let drawing = null;
+    let unsaved = false;
+
+    registerDirtyCheck('redact', () =>
+        unsaved && Object.values(boxes).reduce((s, a) => s + a.length, 0) > 0);
 
     const viewer = createPageViewer(
         { canvas: 'redCanvas', overlay: 'redOverlay', info: 'redPageInfo', prev: 'redPrev', next: 'redNext' },
@@ -1798,6 +1929,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
             else color = document.getElementById('redColor').value;
             if (!boxes[viewer.cur]) boxes[viewer.cur] = [];
             boxes[viewer.cur].push({ ...r, color });
+            unsaved = true;
             renderBoxes();
         }
         drawing = null;
@@ -1816,6 +1948,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
             showLoading('PDF 여는 중...');
             try {
                 boxes = {};
+                unsaved = false;
                 await viewer.load(files[0]);
                 document.getElementById('redEditor').classList.add('active');
             } catch (e) {
@@ -1836,6 +1969,9 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
         hideError('redError');
         hideResult('redResult');
         this.disabled = true;
+        const outName = `${baseName(viewer.name)}_가림.pdf`;
+        const target = await pickSaveTarget(outName);
+        if (target.mode === 'cancel') { this.disabled = false; return; }
         showLoading('가리고 저장하는 중...');
         try {
             const { PDFDocument } = PDFLib;
@@ -1871,8 +2007,9 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
                 p.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
             }
             const bytes = await out.save();
-            downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${baseName(viewer.name)}_가림.pdf`);
-            showResult('redResult', `박스 ${total}개를 가려서 저장했습니다. 가린 페이지는 복구 불가능하게 평면화되었습니다.`);
+            const savedName = await saveBlob(target, new Blob([bytes], { type: 'application/pdf' }), outName);
+            unsaved = false;
+            showResult('redResult', `박스 ${total}개를 가려서 "${savedName}"로 저장했습니다. 가린 페이지는 복구 불가능하게 평면화되었습니다.`);
         } catch (e) {
             showError('redError', '저장 중 오류: ' + (e.message || e));
         } finally {
@@ -1892,6 +2029,10 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
     // item(image): {type:'image', dataUrl, aspect, x, y, w}  w = 폭/페이지 폭 비율
     let selected = null;  // {pageIndex, idx}
     let dragCtx = null;
+    let unsaved = false;
+
+    registerDirtyCheck('stamp', () =>
+        unsaved && Object.values(stamps).reduce((s, a) => s + a.length, 0) > 0);
 
     const viewer = createPageViewer(
         { canvas: 'stampCanvas', overlay: 'stampOverlay', info: 'stampPageInfo', prev: 'stampPrev', next: 'stampNext' },
@@ -1935,6 +2076,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
 
     function updateFavBtn() {
         document.getElementById('stampFavSaveBtn').disabled = !selected;
+        document.getElementById('stampAllPagesBtn').disabled = !selected || viewer.num < 2;
     }
 
     function selectItem(idx) {
@@ -1961,6 +2103,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
 
     document.addEventListener('mousemove', (e) => {
         if (!dragCtx) return;
+        unsaved = true;
         const cur = viewer.toRatio(e);
         const dx = cur.x - dragCtx.start.x;
         const dy = cur.y - dragCtx.start.y;
@@ -1984,6 +2127,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
         if (!btn) return;
         const el = e.target.closest('.stamp-el');
         pageItems().splice(parseInt(el.dataset.index), 1);
+        unsaved = true;
         selectItem(null);
     });
 
@@ -1999,6 +2143,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
         const color = document.getElementById('stampTextColor').value;
         pageItems().push({ type: 'text', text, color, x: 0.35, y: 0.45, fh: 0.025 });
         document.getElementById('stampTextPanel').style.display = 'none';
+        unsaved = true;
         selectItem(pageItems().length - 1);
     });
 
@@ -2031,6 +2176,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
         try {
             const { dataUrl, aspect } = await imageFileToDataUrl(this.files[0], 800);
             pageItems().push({ type: 'image', dataUrl, aspect, x: 0.4, y: 0.4, w: 0.18 });
+            unsaved = true;
             selectItem(pageItems().length - 1);
         } catch (e) {
             showError('stampError', e.message);
@@ -2084,6 +2230,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
         } else {
             pageItems().push({ type: 'image', dataUrl: f.dataUrl, aspect: f.aspect, x: 0.4, y: 0.4, w: f.w || 0.18 });
         }
+        unsaved = true;
         selectItem(pageItems().length - 1);
     });
 
@@ -2097,6 +2244,36 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
         renderFavs();
     });
 
+    // ----- 선택한 항목을 모든 페이지의 같은 자리에 복사 (도장 일괄 적용) -----
+    const HINT_DEFAULT = document.getElementById('stampHint').textContent;
+    let hintTimer = null;
+    function flashHint(msg) {
+        const hint = document.getElementById('stampHint');
+        hint.textContent = msg;
+        clearTimeout(hintTimer);
+        hintTimer = setTimeout(() => { hint.textContent = HINT_DEFAULT; }, 5000);
+    }
+
+    document.getElementById('stampAllPagesBtn').addEventListener('click', () => {
+        if (!selected) return;
+        const it = pageItems()[selected.idx];
+        let added = 0;
+        for (let p = 0; p < viewer.num; p++) {
+            if (p === viewer.cur) continue;
+            if (!stamps[p]) stamps[p] = [];
+            // 같은 항목이 같은 자리에 이미 있으면 건너뜀 (두 번 눌러도 중복 안 생김)
+            const dup = stamps[p].some(o => o.type === it.type && o.x === it.x && o.y === it.y &&
+                (it.type === 'text' ? (o.text === it.text && o.color === it.color) : o.dataUrl === it.dataUrl));
+            if (dup) continue;
+            stamps[p].push(JSON.parse(JSON.stringify(it)));
+            added++;
+        }
+        if (added > 0) unsaved = true;
+        flashHint(added > 0
+            ? `다른 ${added}개 페이지의 같은 자리에 복사했습니다. ‹ › 로 넘겨 확인하세요.`
+            : '이미 모든 페이지의 같은 자리에 들어 있습니다.');
+    });
+
     // ----- 파일 열기 -----
     setupUploadZone('stampUploadZone', 'stampFileInput', {
         async onFiles(files) {
@@ -2106,6 +2283,7 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
             try {
                 stamps = {};
                 selected = null;
+                unsaved = false;
                 await viewer.load(files[0]);
                 document.getElementById('stampEditor').classList.add('active');
                 renderFavs();
@@ -2157,6 +2335,9 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
         hideError('stampError');
         hideResult('stampResult');
         this.disabled = true;
+        const outName = `${baseName(viewer.name)}_삽입.pdf`;
+        const target = await pickSaveTarget(outName);
+        if (target.mode === 'cancel') { this.disabled = false; return; }
         showLoading('저장하는 중...');
         try {
             const { PDFDocument } = PDFLib;
@@ -2228,8 +2409,9 @@ function sampleAroundBox(canvas, rx0, ry0, rx1, ry1) {
                 }
             }
             const bytes = await out.save();
-            downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${baseName(viewer.name)}_삽입.pdf`);
-            showResult('stampResult', `항목 ${total}개를 넣어 저장했습니다.`);
+            const savedName = await saveBlob(target, new Blob([bytes], { type: 'application/pdf' }), outName);
+            unsaved = false;
+            showResult('stampResult', `항목 ${total}개를 넣어 "${savedName}"로 저장했습니다.`);
         } catch (e) {
             showError('stampError', '저장 중 오류: ' + (e.message || e));
         } finally {
