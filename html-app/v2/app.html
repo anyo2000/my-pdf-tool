@@ -808,6 +808,7 @@ body::after {
 <script src="libs/pdf-lib.min.js"></script>
 <script src="libs/pdf.min.js"></script>
 <script src="libs/pdf.worker.min.js"></script>
+<script src="libs/pdf-assets.js"></script>
 <script src="libs/jszip.min.js"></script>
 <script src="libs/pptxgen.bundle.js"></script>
 
@@ -818,6 +819,39 @@ body::after {
 
 // pdf.js: 워커 파일을 같은 문서에 포함했으므로 메인 스레드에서 동작 (file:// 호환)
 // (workerSrc를 비워두면 전역 pdfjsWorker를 자동으로 사용)
+
+// ===== pdf.js 문서 열기 (폰트 데이터 내장) =====
+// 폰트가 PDF에 내장되지 않은 문서(HWP 인쇄물·관공서 PDF 등)는 cMap·표준폰트
+// 데이터가 없으면 글자가 통째로 빠진 채 그려진다. file:// 에서는 fetch가 안 되므로
+// libs/pdf-assets.js 에 base64로 내장한 데이터를 커스텀 팩토리로 공급한다.
+function assetToU8(b64) {
+    const s = atob(b64);
+    const u = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
+    return u;
+}
+class InlineCMapReaderFactory {
+    async fetch({ name }) {
+        const b64 = window.PDF_ASSETS && window.PDF_ASSETS.cmaps[name];
+        if (!b64) throw new Error('내장 cMap 없음: ' + name);
+        return { cMapData: assetToU8(b64), compressionType: pdfjsLib.CMapCompressionType.BINARY };
+    }
+}
+class InlineStandardFontDataFactory {
+    async fetch({ filename }) {
+        const b64 = window.PDF_ASSETS && window.PDF_ASSETS.fonts[filename];
+        if (!b64) throw new Error('내장 표준폰트 없음: ' + filename);
+        return assetToU8(b64);
+    }
+}
+function openPdf(buf) {
+    return pdfjsLib.getDocument({
+        data: new Uint8Array(buf),
+        CMapReaderFactory: InlineCMapReaderFactory,
+        StandardFontDataFactory: InlineStandardFontDataFactory,
+        useWorkerFetch: false,
+    }).promise;
+}
 
 // ===== Utilities =====
 function formatFileSize(bytes) {
@@ -1207,7 +1241,7 @@ function canvasToBlob(canvas, type, quality) {
             srcName = file.name;
             const buf = await file.arrayBuffer();
             srcBytes = buf.slice(0);  // pdf.js가 buffer를 가져가므로 복사본 보관
-            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+            const pdf = await openPdf(buf);
             items = [];
             // 첫 페이지 방향에 맞춰 격자 모양 결정 (가로 문서 = 넓은 칸)
             const firstPage = await pdf.getPage(1);
@@ -1316,7 +1350,7 @@ function canvasToBlob(canvas, type, quality) {
 
     async function processPdf(file, target, outName) {
         const buf = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+        const pdf = await openPdf(buf);
         const { PDFDocument } = PDFLib;
         const out = await PDFDocument.create();
         for (let i = 1; i <= pdf.numPages; i++) {
@@ -1566,7 +1600,7 @@ function canvasToBlob(canvas, type, quality) {
             const mime = format === 'png' ? 'image/png' : 'image/jpeg';
             const ext = format === 'png' ? 'png' : 'jpg';
             const buf = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+            const pdf = await openPdf(buf);
             const base = baseName(file.name);
             const pad = String(pdf.numPages).length;
             // 1페이지 = 그림 파일, 여러 페이지 = ZIP — 이름이 갈리므로 여기서 저장 위치 선택
@@ -1631,7 +1665,7 @@ function canvasToBlob(canvas, type, quality) {
         try {
             const scale = parseFloat(document.getElementById('p2pScale').value) * 1.5;
             const buf = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+            const pdf = await openPdf(buf);
 
             // 첫 페이지 비율로 슬라이드 크기를 한 번만 정의
             const first = await pdf.getPage(1);
@@ -1703,7 +1737,7 @@ function createPageViewer(ids, onPageShown) {
         v.name = file.name;
         const buf = await file.arrayBuffer();
         v.bytes = buf.slice(0);
-        v.pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+        v.pdf = await openPdf(buf);
         v.num = v.pdf.numPages;
         await show(0);
     };
